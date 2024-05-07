@@ -1,0 +1,24 @@
+{
+  "name": "php/base-repository",
+  "description": "Repositorio base para crear apis con php",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Modules\\": "src/Modules/",
+      "Config\\": "src/Config/",
+      "Shared\\": "src/Shared/"
+    },
+    "files": ["src/Shared/App/Utils/Response.php"]
+  },
+  "authors": [
+    {
+      "name": "Roxnny A Barrios C",
+      "email": "roxnny.barrios@gmail.com"
+    }
+  ],
+  "require": {
+    "ext-json": "*",
+    "respect/validation": "^2.3",
+    "ramsey/uuid": "^4.7"
+  }
+}

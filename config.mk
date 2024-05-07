@@ -1,0 +1,3 @@
+STAGE=dev
+API_PORT=8081
+PROJECT_NAME=php_base_api

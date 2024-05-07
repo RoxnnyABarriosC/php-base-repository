@@ -1,0 +1,15 @@
+.git/
+.husky/
+.idea/
+documentation/
+dist/
+docker/
+node_modules/
+vendor/
+test/
+tools/
+.env.example
+env.d.ts
+LICENCE
+Makefile
+README.md

@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+  api:
+    container_name: php_base_api
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: ${STAGE:-dev}
+    ports:
+      - "${API_PORT:-8080}:80"
+    volumes:
+      - api:/var/www/html
+    networks:
+      - internal_network
+      - external_network
+
+networks:
+  external_network:
+    external: true
+    name: external_php_base_api_network
+
+  internal_network:
+    external: false
+    name: internal_php_base_api_network
+
+volumes:
+  api:
+    driver: "local"
+    name: php_base_api
