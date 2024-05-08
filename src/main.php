@@ -22,7 +22,7 @@ Router::methodNotAllowed(fn() => Response('Path not found', HttpStatus::NOT_FOUN
 
 Router::addModule(ExampleModule::init(...));
 
-Router::run(
+Router::build(
     basePath: 'api',
     trailingSlashMatters: true
 );

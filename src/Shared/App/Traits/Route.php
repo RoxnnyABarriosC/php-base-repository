@@ -46,6 +46,43 @@ trait Route
         );
     }
 
+
+    /**
+     * Add multiple routes at once.
+     *
+     * This method allows you to add multiple routes to the application at once.
+     * Each route in the array should be an associative array with the following keys:
+     * - 'expression': The route pattern (string).
+     * - 'function': The callback function to be executed when the route is matched (callable).
+     * - 'method': The HTTP method for the route (HttpVerbs).
+     * - 'middlewares': An array of middleware to be applied to the route (array|null).
+     *
+     * @param array $routes An array of routes to add.
+     */
+    public static function addMany(array $routes): void
+    {
+        self::$routes = array_merge(self::$routes, $routes);
+    }
+
+
+    /**
+     * Add routes from a module.
+     *
+     * This method allows you to add multiple routes from a module to the application at once.
+     * The module should be a callable that returns an array of routes when invoked.
+     * Each route in the array should be an associative array with the following keys:
+     * - 'expression': The route pattern (string).
+     * - 'function': The callback function to be executed when the route is matched (callable).
+     * - 'method': The HTTP method for the route (HttpVerbs).
+     * - 'middlewares': An array of middleware to be applied to the route (array|null).
+     *
+     * @param callable $module A callable that returns an array of routes when invoked.
+     */
+    public static function addModule(callable $module): void
+    {
+        self::$routes = array_merge(self::$routes, $module());
+    }
+
     /**
      * Get all routes.
      *
