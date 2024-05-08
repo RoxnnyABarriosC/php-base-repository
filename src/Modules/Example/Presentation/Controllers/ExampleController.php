@@ -37,7 +37,7 @@ class ExampleController
 
     #[NoReturn]
     #[Route()]
-//    #[Method(HttpVerbs::POST)]
+    #[Method(HttpVerbs::POST)]
     public function main2(): void
     {
 //        throw new HttpException(HttpStatus::BAD_REQUEST, 'Test de error', 'TEST_ERROR');

@@ -7,6 +7,7 @@ require_once __DIR__ . '/Shared/App/Utils/Reflects.php';
 
 use Modules\Example\ExampleModule;
 use Shared\App\Core\Router;
+use Shared\App\Enums\HttpStatus;
 use Shared\App\Enums\HttpVerbs;
 
 header("Access-Control-Allow-Origin: *");
@@ -16,8 +17,12 @@ header("Content-Type: application/json");
 
 Router::add('/health', fn() => Response('API is running'), HttpVerbs::GET);
 
+Router::pathNotFound(fn() => Response('Path not found', HttpStatus::NOT_FOUND));
+Router::methodNotAllowed(fn() => Response('Path not found', HttpStatus::NOT_FOUND));
 
 Router::addModule(ExampleModule::init(...));
 
-
-Router::run('/api/');
+Router::run(
+    basePath: 'api',
+    trailingSlashMatters: true
+);
