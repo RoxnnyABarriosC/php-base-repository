@@ -4,6 +4,7 @@ require_once 'autoload.php';
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Shared/App/Utils/Response.php';
 require_once __DIR__ . '/Shared/App/Utils/Reflects.php';
+require_once __DIR__ . '/Shared/Utils/Transformers.php';
 
 use Shared\App\Core\Router;
 use Shared\App\Enums\HttpStatus;

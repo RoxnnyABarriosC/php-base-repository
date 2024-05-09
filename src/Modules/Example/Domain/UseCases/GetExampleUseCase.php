@@ -3,7 +3,6 @@
 namespace Modules\Example\Domain\UseCases;
 
 use Modules\Example\Domain\Entities\Example;
-use Modules\Example\Presentation\DTO\SaveExampleDTO;
 
 class GetExampleUseCase
 {

@@ -5,7 +5,7 @@ namespace Modules\Example\Presentation\Controllers;
 use JetBrains\PhpStorm\NoReturn;
 use Modules\Example\Domain\UseCases\GetExampleUseCase;
 use Modules\Example\Domain\UseCases\SaveExampleUseCase;
-use Modules\Example\Presentation\DTO\SaveExampleDTO;
+use Modules\Example\Presentation\DTO\Body\SaveExampleDTO;
 use Shared\App\Attributes\Controller;
 use Shared\App\Attributes\Method;
 use Shared\App\Attributes\Route;

@@ -22,7 +22,7 @@ abstract class DTO
         return $data;
     }
 
-    public static function schema(): ChainedValidator
+    public static function schema(): v|ChainedValidator
     {
         return v::objectType();
     }

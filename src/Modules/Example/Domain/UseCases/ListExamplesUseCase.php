@@ -5,7 +5,7 @@ namespace Modules\Example\Domain\UseCases;
 use Modules\Example\Domain\Entities\Example;
 use Modules\Example\Presentation\DTO\Body\SaveExampleDTO;
 
-class SaveExampleUseCase
+class ListExamplesUseCase
 {
 
     public static function handle(SaveExampleDTO $dto): Example
