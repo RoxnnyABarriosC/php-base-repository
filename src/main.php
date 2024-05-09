@@ -22,7 +22,7 @@ Router::methodNotAllowed($notFound);
 
 Router::registerModules(ExampleModule::class);
 
-//var_dump(Router::getAll());
+//echo json_encode(Router::getAll());
 
 Router::build(
     basePath: 'api',

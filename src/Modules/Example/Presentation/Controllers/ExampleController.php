@@ -32,8 +32,7 @@ class ExampleController
 //    }
 
     #[NoReturn]
-//    #[Route(':id')]
-    #[Put(':id')]
+    #[Get(':id')]
     public function get(string $id): void
     {
         $data = GetExampleUseCase::handle($id);

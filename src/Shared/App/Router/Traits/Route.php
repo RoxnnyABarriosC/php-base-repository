@@ -4,10 +4,7 @@ namespace Shared\App\Router\Traits;
 
 require_once __DIR__ . '/../Reflects.php';
 
-use ReflectionClass;
 use ReflectionException;
-use Shared\App\Router\Annotations\Controller;
-use Shared\App\Router\Annotations\Module;
 use Shared\App\Router\Enums\HttpVerbs;
 
 /**
@@ -72,12 +69,19 @@ trait Route
 
 
     /**
+     * Load controllers from a given module.
+     *
+     * This function uses PHP's reflection API to inspect a given module class and extract controller information from it.
+     * It assumes that the module class is annotated with a custom `Module` attribute that defines the controllers.
+     *
+     * @param mixed ...$modules
+     * @return void
      * @throws ReflectionException
      */
     public static function registerModules(mixed ...$modules): void
     {
         foreach ($modules as $key => $module) {
-            self::$routes = array_merge(self::$routes, LoadControllers($module));
+            self::$routes = array_merge(self::$routes, LoadControllers(new $module()));
         }
     }
 

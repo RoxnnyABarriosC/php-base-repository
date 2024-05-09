@@ -17,7 +17,7 @@ trait  Module
      * @param callable $add The function to add routes. The function should have the following signature:
      *                      function (string $expression, callable $function, $method = HttpVerbs::GET, array $middlewares = NULL)
      */
-    static function onMounted(callable $add): void
+    public static function onMounted(callable $add): void
     {}
 
     /**
@@ -28,7 +28,7 @@ trait  Module
      * @return array The routes for the module.
      * @throws ReflectionException
      */
-    public static function init(): array
+    public static function init(callable $add): array
     {
         $routes = [];
 
