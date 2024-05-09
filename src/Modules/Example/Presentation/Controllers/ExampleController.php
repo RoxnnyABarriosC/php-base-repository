@@ -20,23 +20,23 @@ use Shared\App\Router\Enums\HttpVerbs;
 )]
 class ExampleController
 {
-//    #[NoReturn]
-//    #[Post()]
-//    public function save(): void
-//    {
-//        $dto = SaveExampleDTO::validate(BODY);
-//
-//        $data = SaveExampleUseCase::handle($dto);
-//
-//        Response($data, HttpStatus::CREATED);
-//    }
-
     #[NoReturn]
-    #[Get(':id')]
-    public function get(string $id): void
+    #[Post()]
+    public function save(): void
     {
-        $data = GetExampleUseCase::handle($id);
+        $dto = SaveExampleDTO::validate(BODY);
 
-        Response($data);
+        $data = SaveExampleUseCase::handle($dto);
+
+        Response($data, HttpStatus::CREATED);
     }
+
+//    #[NoReturn]
+//    #[Get(':id')]
+//    public function get(string $id): void
+//    {
+//        $data = GetExampleUseCase::handle($id);
+//
+//        Response($data);
+//    }
 }

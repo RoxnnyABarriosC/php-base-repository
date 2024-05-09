@@ -50,35 +50,26 @@ function LoadRoute(mixed $controller): array
     }
 
     foreach ($reflector->getMethods() as $method) {
-        foreach ($method->getAttributes(Route::class, ReflectionAttribute::IS_INSTANCEOF) as $attribute) {
-            $iRoute = $attribute->newInstance();
-            $route = [];
+        foreach ($method->getAttributes(Route::class, ReflectionAttribute::IS_INSTANCEOF) as $rAttribute) {
+            $iRoute = $rAttribute->newInstance();
 
-            $route['path'] = $basePath . AddTrailingSlash($iRoute->path, true) ?? '/';
-            $route['method'] = $iRoute->method ?? HttpVerbs::GET;
-            $route['middlewares'] = $iRoute->middlewares ?? [];
-
-            if ($method->isStatic()) {
-                $route['function'] = $controller::{
+            $route = [
+                'path' => $basePath . AddTrailingSlash($iRoute->path, true) ?? '/',
+                'method' => $iRoute->method ?? HttpVerbs::GET,
+                'middlewares' => $iRoute->middlewares ?? [],
+                'function' => $method->isStatic() ? $controller::{
                 $method->getName()
-                }(...);
-            }
-
-            if (!$method->isStatic()) {
-                $route['function'] = $controller->{
+                }(...) : $controller->{
                 $method->getName()
-                }(...);
+                }(...)
+            ];
+
+            foreach ($method->getAttributes(UseMiddleware::class) as $mAttribute) {
+                $iUseMiddleware = $mAttribute->newInstance();
+                $route['middlewares'] = array_merge($route['middlewares'], $iUseMiddleware->middlewares);
             }
 
             $routes[] = $route;
-        }
-
-        foreach ($method->getAttributes(UseMiddleware::class) as $attribute) {
-            $iUseMiddleware = $attribute->newInstance();
-            $routes = array_map(function ($route) use ($iUseMiddleware) {
-                $route['middlewares'] = array_merge($route['middlewares'], $iUseMiddleware->middlewares);
-                return $route;
-            }, $routes);
         }
     }
 
@@ -102,10 +93,8 @@ function LoadControllers(mixed $module): array
     $reflector = new ReflectionClass($module);
 
     foreach ($reflector->getAttributes(Module::class) as $attribute) {
-        $iModule = $attribute->newInstance();
-
-        foreach ($iModule->controllers as $controller) {
-            $routes = array_merge($routes, @LoadRoute(new $controller()));
+        foreach ($attribute->newInstance()->controllers as $controller) {
+            $routes = array_merge($routes, LoadRoute(new $controller()));
         }
     }
 

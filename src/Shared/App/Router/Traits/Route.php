@@ -42,7 +42,7 @@ trait Route
     public static function add(string $path, callable $function, HttpVerbs $method = HttpVerbs::GET, array $middlewares = NULL): void
     {
         self::$routes[] = array(
-            'path' => $path,
+            'path' => AddTrailingSlash($path),
             'function' => $function,
             'method' => $method,
             'middlewares' => $middlewares
@@ -69,13 +69,12 @@ trait Route
 
 
     /**
-     * Load controllers from a given module.
+     * Register modules.
      *
-     * This function uses PHP's reflection API to inspect a given module class and extract controller information from it.
-     * It assumes that the module class is annotated with a custom `Module` attribute that defines the controllers.
+     * This method allows you to register multiple modules at once.
+     * It takes a variable number of module instances as arguments and loads the controllers from each module.
      *
-     * @param mixed ...$modules
-     * @return void
+     * @param mixed ...$modules The modules to register.
      * @throws ReflectionException
      */
     public static function registerModules(mixed ...$modules): void

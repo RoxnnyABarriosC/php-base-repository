@@ -73,32 +73,27 @@ function MapErrors(NestedValidationException $exception): array
 function ExceptionHandler($exception): never
 {
     $statusCode = $exception->getCode() ?: HttpStatus::INTERNAL_SERVER_ERROR->value;
+    $errorCode = $exception instanceof HttpException ? $exception->getErrorCode() : 'ERROR';
+    $errorMessage = $exception->getMessage();
 
-    echo $exception;
+    if ($exception instanceof NestedValidationException) {
+        $statusCode = HttpStatus::BAD_REQUEST->value;
+        $errorMessage = 'Validation error';
+        $errorCode = 'VALIDATION_ERROR';
+        $data = MapErrors($exception);
+    }
 
     $response = [
         'folio' => CORRELATION_ID,
         'timestamp' => time(),
         'status' => HttpStatus::getStatus($statusCode),
-        'errorMessage' => $exception->getMessage(),
-        'errorCode' => $exception instanceof HttpException ? $exception->getErrorCode() : 'ERROR',
+        'errorMessage' => $errorMessage,
+        'errorCode' => $errorCode,
+        'data' => $data ?? null
     ];
 
-    if ($exception instanceof NestedValidationException) {
-        $statusCode = HttpStatus::BAD_REQUEST->value;
-        $response['status'] = HttpStatus::getStatus($statusCode);
-        $response['errorMessage'] = 'Validation error';
-        $response['errorCode'] = 'VALIDATION_ERROR';
-        $response['data'] = MapErrors($exception);
-    }
-
-    // Set the HTTP response code
     http_response_code($statusCode);
-
-    // Send the response
     echo json_encode($response, JSON_UNESCAPED_SLASHES);
-
-    // Terminate the script
     exit;
 }
 

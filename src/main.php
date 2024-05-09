@@ -13,7 +13,7 @@ header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 header("Content-Type: application/json");
 
-Router::add('/health', fn() => Response('API is running'));
+Router::add('health', fn() => Response('API is running'));
 
 $notFound = fn() => Response('Route not found', HttpStatus::NOT_FOUND);
 
