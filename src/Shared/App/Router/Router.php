@@ -79,27 +79,20 @@ class Router
             if (preg_match('#' . $route['path'] . '#' . ($caseMatters ? '' : 'i') . 'u', $path, $matches)) {
                 $pathMatchFound = true;
 
-                foreach ((array)$route['method'] as $allowedMethod) {
-                    if (strcasecmp($method, $allowedMethod) == 0) {
-                        if ($return_value = call_user_func_array($route['function'], array_slice($matches, $basePath == '' || $basePath == '/' ? 1 : 2))) {
-                            echo $return_value;
-                        }
-                        $routeMatchFound = true;
-                        break;
-                    }
+                if (in_array($method, (array)$route['method'], true)) {
+                    echo call_user_func_array($route['function'], array_slice($matches, $basePath == '' || $basePath == '/' ? 1 : 2)) ?: '';
+                    $routeMatchFound = true;
                 }
-            }
 
-            if ($routeMatchFound && !$multiMatch) {
-                break;
+                if ($routeMatchFound && !$multiMatch) {
+                    break;
+                }
             }
         }
 
         if (!$routeMatchFound) {
             $callback = $pathMatchFound ? self::$methodNotAllowed : self::$pathNotFound;
-            if ($callback && $return_value = call_user_func_array($callback, $pathMatchFound ? array($path, $method) : array($path))) {
-                echo $return_value;
-            }
+            echo call_user_func_array($callback, [$path, $method]) ?: '';
         }
     }
 }
