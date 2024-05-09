@@ -2,8 +2,9 @@
 
 namespace Modules\Example\Presentation\DTO;
 
-use Shared\App\Abstract\DTO;
+use Respect\Validation\ChainedValidator;
 use Respect\Validation\Validator as v;
+use Shared\App\Abstract\DTO;
 
 class SaveExampleDTO extends DTO
 {
@@ -11,24 +12,18 @@ class SaveExampleDTO extends DTO
     public string $description;
     public bool $isActivated = false;
 
-    public static function validate($data): DTO|array
+    public static function schema(): ChainedValidator
     {
-        $data = (new static())->sanitize($data);
-
-        $validator = v::objectType()->attribute('name', v::stringType()->notEmpty())
+        return v::objectType()->attribute('name', v::stringType()->notEmpty())
             ->attribute('description', v::stringType()->notEmpty())
             ->attribute('isActivated', v::optional(v::boolType()));
-
-        $validator->assert(json_decode(json_encode($data)));
-
-        return $data;
     }
 
     public static function transformProperties(): array
     {
         function Sanitize(string $value): string
         {
-            return htmlspecialchars($value, ENT_QUOTES,'UTF-8');
+            return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
         }
 
         function ToUpperCase(string $value): string
