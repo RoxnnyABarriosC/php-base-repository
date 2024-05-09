@@ -25,6 +25,7 @@ Router::registerModules(ExampleModule::class);
 //echo json_encode(Router::getAll());
 
 Router::build(
-    basePath: 'api',
-    trailingSlashMatters: false
+    basePath: '/api',
+    caseMatters: true,
+    trailingSlashMatters: true
 );

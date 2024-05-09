@@ -64,75 +64,41 @@ class Router
      */
     public static function build(string $basePath = '', bool $caseMatters = false, bool $trailingSlashMatters = false, bool $multiMatch = false): void
     {
-        // Ensure the base path ends with a slash
         $basePath = AddTrailingSlash(rtrim($basePath, '/'), true);
-
-        // Parse the current request URI
         $parsed_url = parse_url($_SERVER['REQUEST_URI']);
-
-        // Default path is root
-        $path = '/';
-
-        // If a path is set in the parsed URL, use it
-        if (isset($parsed_url['path'])) {
-            $path = $trailingSlashMatters ? $parsed_url['path'] : rtrim($parsed_url['path'], '/');
-        }
-
-        // Decode the path
+        $path = isset($parsed_url['path']) ? ($trailingSlashMatters ? $parsed_url['path'] : rtrim($parsed_url['path'], '/')) : '/';
         $path = urldecode($path);
-
-        // Get the request method
         $method = $_SERVER['REQUEST_METHOD'];
 
-        // Initialize match flags
         $pathMatchFound = false;
         $routeMatchFound = false;
 
-        // Iterate over all registered routes
         foreach (self::$routes as $route) {
-            // Prepare the route path for matching
-            $route['path'] = '^(' . $basePath . ')' . $route['path'] . '$';
+            $route['path'] = '^(' . $basePath . ')' . self::processRoute($route['path']) . '$';
 
-            // Process the route path
-            $route['path'] = self::processRoute($route['path']);
-
-            // Try to match the route
             if (preg_match('#' . $route['path'] . '#' . ($caseMatters ? '' : 'i') . 'u', $path, $matches)) {
                 $pathMatchFound = true;
 
-                // Check if the request method matches
                 foreach ((array)$route['method'] as $allowedMethod) {
                     if (strcasecmp($method, $allowedMethod) == 0) {
-                        // Extract the matches and call the route function
-                        $matches = array_slice($matches, $basePath == '' || $basePath == '/' ? 1 : 2);
-
-                        // If the route function returns a value, echo it
-                        if ($return_value = call_user_func_array($route['function'], $matches)) {
+                        if ($return_value = call_user_func_array($route['function'], array_slice($matches, $basePath == '' || $basePath == '/' ? 1 : 2))) {
                             echo $return_value;
                         }
-
-                        // Mark the route as found
                         $routeMatchFound = true;
                         break;
                     }
                 }
             }
 
-            // If a route was found and we're not matching multiple routes, break the loop
             if ($routeMatchFound && !$multiMatch) {
                 break;
             }
         }
 
-        // If no route was found, call the appropriate callback
         if (!$routeMatchFound) {
             $callback = $pathMatchFound ? self::$methodNotAllowed : self::$pathNotFound;
-            if ($callback) {
-                $args = $pathMatchFound ? array($path, $method) : array($path);
-                $return_value = call_user_func_array($callback, $args);
-                if ($return_value) {
-                    echo $return_value;
-                }
+            if ($callback && $return_value = call_user_func_array($callback, $pathMatchFound ? array($path, $method) : array($path))) {
+                echo $return_value;
             }
         }
     }
