@@ -20,7 +20,7 @@ RUN pecl config-set php_ini /etc/php.ini
 RUN echo "extension=mongodb.so" > /usr/local/etc/php/conf.d/mongodb.ini
 
 # Increase PHP memory limit
-RUN echo "memory_limit = 512M" > /usr/local/etc/php/conf.d/memory-limit.ini
+RUN echo "memory_limit = 10000M" > /usr/local/etc/php/conf.d/memory-limit.ini
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer

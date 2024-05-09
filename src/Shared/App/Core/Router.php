@@ -4,7 +4,6 @@ namespace Shared\App\Core;
 
 use Shared\App\Traits\Route;
 
-
 /**
  * Class Router
  *
@@ -44,6 +43,11 @@ class Router
     public static function methodNotAllowed(callable $function): void
     {
         self::$methodNotAllowed = $function;
+    }
+
+    private static function processRoute($route): array|string|null
+    {
+        return preg_replace('/:\w+/', '(\w+)', $route);
     }
 
     /**
@@ -89,6 +93,9 @@ class Router
             // Prepare the route expression for matching
             $route['expression'] = '^(' . $basePath . ')' . $route['expression'] . '$';
 
+            // Process the route expression
+            $route['expression'] = self::processRoute($route['expression']);
+
             // Try to match the route
             if (preg_match('#' . $route['expression'] . '#' . ($caseMatters ? '' : 'i') . 'u', $path, $matches)) {
                 $pathMatchFound = true;
@@ -129,5 +136,6 @@ class Router
             }
         }
     }
-
 }
+
+define("BODY", json_decode(file_get_contents('php://input'), true) ?? []);

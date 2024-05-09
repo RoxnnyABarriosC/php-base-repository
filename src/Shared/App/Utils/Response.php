@@ -11,22 +11,20 @@ DEFINE('CORRELATION_ID', Uuid::uuid4()->toString());
 /**
  * Sends a JSON response with the given data and status code.
  *
- * @param array|string $data The data to be sent in the response.
+ * @param mixed $data The data to be sent in the response.
  * @param HttpStatus $statusCode The HTTP status code for the response. Default is 200.
- * @param array|null $options An optional array containing additional options for the response.
- *   'metadata' => array|null Additional metadata to be included in the response. Default is null.
- *   'pagination' => array|null Pagination information to be included in the response. Default is null.
- *   'log' => bool Whether to log the response. Default is false.
+ * @param array $metadata Additional metadata to be included in the response. Default is null.
+ * @param array $pagination Pagination information to be included in the response. Default is null.
+ * @Param bool $log Whether to log the response. Default is false.
  */
 #[NoReturn]
-function Response(array|string $data, HttpStatus $statusCode = HttpStatus::OK, ?array $options = null): never
+function Response(mixed $data, HttpStatus $statusCode = HttpStatus::OK, array $pagination = [],  array $metadata = [], bool $log = false): never
 {
     // Set the HTTP response code
     http_response_code($statusCode->value);
 
     // Set default values for the options if not provided
-    $defaultOptions = ['metadata' => null, 'pagination' => null, 'log' => false];
-    $options = !empty($options) ? array_merge($defaultOptions, $options) : $defaultOptions;
+    $options = ['metadata' => $metadata, 'pagination' => $pagination];
 
     // Prepare the response data
     $response = [
@@ -86,7 +84,7 @@ function ExceptionHandler($exception): never
 
     if ($exception instanceof NestedValidationException) {
         $statusCode = HttpStatus::BAD_REQUEST->value;
-        $response['success'] = HttpStatus::getStatus($statusCode);
+        $response['status'] = HttpStatus::getStatus($statusCode);
         $response['errorMessage'] = 'Validation error';
         $response['errorCode'] = 'VALIDATION_ERROR';
         $response['data'] = MapErrors($exception);
