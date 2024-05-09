@@ -6,11 +6,13 @@ use JetBrains\PhpStorm\NoReturn;
 use Modules\Example\Domain\UseCases\GetExampleUseCase;
 use Modules\Example\Domain\UseCases\SaveExampleUseCase;
 use Modules\Example\Presentation\DTO\Body\SaveExampleDTO;
-use Shared\App\Attributes\Controller;
-use Shared\App\Attributes\Method;
-use Shared\App\Attributes\Route;
-use Shared\App\Enums\HttpStatus;
-use Shared\App\Enums\HttpVerbs;
+use Shared\App\Router\Annotations\Controller;
+use Shared\App\Router\Annotations\Get;
+use Shared\App\Router\Annotations\Post;
+use Shared\App\Router\Annotations\Put;
+use Shared\App\Router\Annotations\Route;
+use Shared\App\Router\Enums\HttpStatus;
+use Shared\App\Router\Enums\HttpVerbs;
 
 #[Controller(
     path: 'example',
@@ -18,21 +20,21 @@ use Shared\App\Enums\HttpVerbs;
 )]
 class ExampleController
 {
+//    #[NoReturn]
+//    #[Post()]
+//    public function save(): void
+//    {
+//        $dto = SaveExampleDTO::validate(BODY);
+//
+//        $data = SaveExampleUseCase::handle($dto);
+//
+//        Response($data, HttpStatus::CREATED);
+//    }
+
     #[NoReturn]
-    #[Route()]
-    #[Method(HttpVerbs::POST)]
-    public static function save(): void
-    {
-        $dto = SaveExampleDTO::validate(BODY);
-
-        $data = SaveExampleUseCase::handle($dto);
-
-        Response($data, HttpStatus::CREATED);
-    }
-
-    #[NoReturn]
-    #[Route(':id')]
-    public static function get(string $id): void
+//    #[Route(':id')]
+    #[Put(':id')]
+    public function get(string $id): void
     {
         $data = GetExampleUseCase::handle($id);
 

@@ -1,8 +1,8 @@
 <?php
 
-namespace Shared\App\Core;
+namespace Shared\App\Router;
 
-use Shared\App\Traits\Route;
+use Shared\App\Router\Traits\Route;
 
 /**
  * Class Router
@@ -90,14 +90,14 @@ class Router
 
         // Iterate over all registered routes
         foreach (self::$routes as $route) {
-            // Prepare the route expression for matching
-            $route['expression'] = '^(' . $basePath . ')' . $route['expression'] . '$';
+            // Prepare the route path for matching
+            $route['path'] = '^(' . $basePath . ')' . $route['path'] . '$';
 
-            // Process the route expression
-            $route['expression'] = self::processRoute($route['expression']);
+            // Process the route path
+            $route['path'] = self::processRoute($route['path']);
 
             // Try to match the route
-            if (preg_match('#' . $route['expression'] . '#' . ($caseMatters ? '' : 'i') . 'u', $path, $matches)) {
+            if (preg_match('#' . $route['path'] . '#' . ($caseMatters ? '' : 'i') . 'u', $path, $matches)) {
                 $pathMatchFound = true;
 
                 // Check if the request method matches

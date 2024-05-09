@@ -1,6 +1,6 @@
 <?php
 
-namespace Shared\App\Enums;
+namespace Shared\App\Router\Enums;
 
 /**
  * Class HttpStatus

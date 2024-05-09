@@ -1,9 +1,9 @@
 <?php
 
-namespace Shared\App\Traits;
+namespace Shared\App\Router\Traits;
 
 use ReflectionException;
-use Shared\App\Enums\HttpVerbs;
+use Shared\App\Router\Enums\HttpVerbs;
 
 
 trait  Module

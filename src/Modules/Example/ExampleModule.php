@@ -3,9 +3,9 @@
 namespace Modules\Example;
 
 use Modules\Example\Presentation\Controllers\ExampleController;
-use Shared\App\Attributes\Module;
-use Shared\App\Enums\HttpVerbs;
-use Shared\App\Traits\Module as TModule;
+use Shared\App\Router\Annotations\Module;
+use Shared\App\Router\Enums\HttpVerbs;
+use Shared\App\Router\Traits\Module as TModule;
 
 #[Module(
     controllers: [ExampleController::class]

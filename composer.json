@@ -8,7 +8,9 @@
       "Config\\": "src/Config/",
       "Shared\\": "src/Shared/"
     },
-    "files": ["src/Shared/App/Utils/Response.php"]
+    "files": [
+      "src/Shared/App/Router/Response.php"
+    ]
   },
   "authors": [
     {

@@ -1,10 +1,10 @@
 <?php
 
-use JetBrains\PhpStorm\NoReturn;
 use Ramsey\Uuid\Uuid;
+use JetBrains\PhpStorm\NoReturn;
+use Shared\App\Router\Enums\HttpStatus;
+use Shared\App\Router\Exceptions\HttpException;
 use Respect\Validation\Exceptions\NestedValidationException;
-use Shared\App\Enums\HttpStatus;
-use Shared\App\Exceptions\HttpException;
 
 DEFINE('CORRELATION_ID', Uuid::uuid4()->toString());
 
@@ -73,6 +73,8 @@ function MapErrors(NestedValidationException $exception): array
 function ExceptionHandler($exception): never
 {
     $statusCode = $exception->getCode() ?: HttpStatus::INTERNAL_SERVER_ERROR->value;
+
+    echo $exception;
 
     $response = [
         'folio' => CORRELATION_ID,

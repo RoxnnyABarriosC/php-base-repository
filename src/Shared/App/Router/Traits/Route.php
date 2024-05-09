@@ -1,8 +1,14 @@
 <?php
 
-namespace Shared\App\Traits;
+namespace Shared\App\Router\Traits;
 
-use Shared\App\Enums\HttpVerbs;
+require_once __DIR__ . '/../Reflects.php';
+
+use ReflectionClass;
+use ReflectionException;
+use Shared\App\Router\Annotations\Controller;
+use Shared\App\Router\Annotations\Module;
+use Shared\App\Router\Enums\HttpVerbs;
 
 /**
  * Trait Route
@@ -31,15 +37,15 @@ trait Route
      * This method allows you to add a new route to the application.
      * You can specify the route pattern, the callback function, the HTTP method, and an array of middleware.
      *
-     * @param string $expression The route pattern.
+     * @param string $path The route pattern.
      * @param callable $function The callback function to be executed when the route is matched.
      * @param HttpVerbs $method The HTTP method for the route. Defaults to GET.
      * @param array|null $middlewares An array of middleware to be applied to the route. Defaults to NULL.
      */
-    public static function add(string $expression, callable $function, HttpVerbs $method = HttpVerbs::GET, array $middlewares = NULL): void
+    public static function add(string $path, callable $function, HttpVerbs $method = HttpVerbs::GET, array $middlewares = NULL): void
     {
         self::$routes[] = array(
-            'expression' => $expression,
+            'path' => $path,
             'function' => $function,
             'method' => $method,
             'middlewares' => $middlewares
@@ -66,21 +72,13 @@ trait Route
 
 
     /**
-     * Add routes from a module.
-     *
-     * This method allows you to add multiple routes from a module to the application at once.
-     * The module should be a callable that returns an array of routes when invoked.
-     * Each route in the array should be an associative array with the following keys:
-     * - 'expression': The route pattern (string).
-     * - 'function': The callback function to be executed when the route is matched (callable).
-     * - 'method': The HTTP method for the route (HttpVerbs).
-     * - 'middlewares': An array of middleware to be applied to the route (array|null).
-     *
-     * @param callable $module A callable that returns an array of routes when invoked.
+     * @throws ReflectionException
      */
-    public static function addModule(callable $module): void
+    public static function registerModules(mixed ...$modules): void
     {
-        self::$routes = array_merge(self::$routes, $module());
+        foreach ($modules as $key => $module) {
+            self::$routes = array_merge(self::$routes, LoadControllers($module));
+        }
     }
 
     /**

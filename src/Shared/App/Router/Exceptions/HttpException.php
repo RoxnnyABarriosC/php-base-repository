@@ -1,9 +1,9 @@
 <?php
 
-namespace Shared\App\Exceptions;
+namespace Shared\App\Router\Exceptions;
 
 use Exception;
-use Shared\App\Enums\HttpStatus;
+use Shared\App\Router\Enums\HttpStatus;
 
 class HttpException extends Exception
 {
