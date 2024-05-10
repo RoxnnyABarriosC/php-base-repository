@@ -7,6 +7,7 @@ require_once __DIR__ . '/Shared/Utils/Transformers.php';
 use Modules\Task\TaskModule;
 use Shared\App\Router\Enums\HttpStatus;
 use Shared\App\Router\Router;
+use Shared\App\Validator\Transformer;
 use Shared\App\Validator\Validator;
 
 header("Access-Control-Allow-Origin: *");
@@ -25,6 +26,12 @@ Router::registerModules(TaskModule::class);
 
 //echo json_encode(Router::getAll());
 
+
+Transformer::build(
+    whiteList: true,
+    forbidNonWhitelisted: false,
+    forbidUnknownValues: true,
+);
 
 Validator::setLang('es');
 Validator::setLangDir(__DIR__ . '/Config/Locales');

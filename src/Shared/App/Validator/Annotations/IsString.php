@@ -4,46 +4,38 @@ namespace Shared\App\Validator\Annotations;
 
 use Attribute;
 use ReflectionProperty;
-use Shared\App\Validator\Exceptions\PropertyException;
-use Shared\App\Validator\Interfaces\IValidationProperty;
-use function strlen;
+use Shared\App\Validator\Interfaces\IValidateConstraint;
 
-/**
- * Validate string length
- */
+
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class IsString implements IValidationProperty
+class IsString implements IValidateConstraint
 {
-    /**
-     * @param int|null $length Fixed length
-     * @param int|null $minLength Minimum string length
-     * @param int|null $maxLength Maximum string length
-     */
     public function __construct(
-        private int|null $length = null,
-        private int|null $minLength = null,
-        private int|null $maxLength = null,
+        private readonly ?string $message = null,
+        private readonly bool    $each = false
+
     )
     {
     }
 
-    /**
-     * @throws PropertyException
-     */
-    public function validateProperty(ReflectionProperty $property, object $object): void
+
+    public function validate(ReflectionProperty $property, object $object): bool
     {
         $value = $property->getValue($object);
 
-        if (isset($this->length) && strlen((string)$value) !== $this->length) {
-            throw new PropertyException($property, 'STRING_INVALID_LENGTH', $this->length);
+        if ($this->each && is_array($value)) {
+            return !in_array(false, array_map(fn($item) => is_string($item), $value));
         }
 
-        if (isset($this->minLength) && strlen((string)$value) < $this->minLength) {
-            throw new PropertyException($property, 'STRING_INVALID_MIN_LENGTH', $this->minLength);
-        }
+        return is_string($value);
+    }
 
-        if (isset($this->maxLength) && strlen((string)$value) > $this->maxLength) {
-            throw new PropertyException($property, 'STRING_INVALID_MAX_LENGTH', $this->maxLength);
-        }
+    public function defaultMessage(ReflectionProperty $property, object $object): string
+    {
+        if ($this->message) return $this->message;
+
+        $message = "Property {$property->getName()} must be a string";
+
+        return $this->each ? "All values of " . $message : $message;
     }
 }

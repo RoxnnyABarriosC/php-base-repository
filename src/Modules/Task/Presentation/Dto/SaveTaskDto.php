@@ -6,10 +6,14 @@ use Shared\App\Abstract\DTO;
 use Respect\Validation\Validator as v;
 use Respect\Validation\ChainedValidator;
 use Modules\Task\Domain\Enums\TaskStatusEnum;
+use Shared\App\Validator\Annotations\Allow;
 use Shared\App\Validator\Annotations\IsEnum;
 use Shared\App\Validator\Annotations\IsString;
 
-class SaveTaskDto extends DTO
+
+
+
+class SaveTaskDto // extends DTO
 {
     #[IsString()]
     public $name;
@@ -17,15 +21,14 @@ class SaveTaskDto extends DTO
     #[IsString()]
     public $description;
 
-    #[IsEnum(TaskStatusEnum::class)]
-    public TaskStatusEnum|string|null $status = TaskStatusEnum::PENDING;
+    #[IsEnum(
+        enum: TaskStatusEnum::class,
+//        each: true
+    )]
+    #[IsString()]
+    public mixed $status = TaskStatusEnum::PENDING;
 
-    public static function transformProperties(): array
-    {
-        return [
-            'name' => [ToUpperCase(...)],
-            'description' => [Sanitize(...), ToUpperCase(...), CleanSpaces(...)],
-            'status' => [ToLowerCase(...)]
-        ];
-    }
+//    #[Allow]
+    public mixed $unknown;
+
 }

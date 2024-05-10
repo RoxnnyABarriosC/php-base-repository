@@ -5,6 +5,7 @@ use JetBrains\PhpStorm\NoReturn;
 use Shared\App\Router\Enums\HttpStatus;
 use Shared\App\Router\Exceptions\HttpException;
 use Respect\Validation\Exceptions\NestedValidationException;
+use Shared\App\Validator\Exceptions\ValidationErrorException;
 
 DEFINE('CORRELATION_ID', Uuid::uuid4()->toString());
 
@@ -76,11 +77,8 @@ function ExceptionHandler($exception): never
     $errorCode = $exception instanceof HttpException ? $exception->getErrorCode() : 'ERROR';
     $errorMessage = $exception->getMessage();
 
-    if ($exception instanceof NestedValidationException) {
-        $statusCode = HttpStatus::BAD_REQUEST->value;
-        $errorMessage = 'Validation error';
-        $errorCode = 'VALIDATION_ERROR';
-        $data = MapErrors($exception);
+    if ($exception instanceof ValidationErrorException) {
+        $data = $exception->getErrors();
     }
 
     $response = [

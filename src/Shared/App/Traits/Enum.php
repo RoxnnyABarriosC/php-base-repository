@@ -11,4 +11,9 @@ trait Enum
             return $carry;
         }, []);
     }
+
+    public static function toString(string $get = 'value'): string
+    {
+        return implode(', ', static::in($get));
+    }
 }

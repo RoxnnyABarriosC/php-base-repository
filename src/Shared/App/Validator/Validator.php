@@ -5,10 +5,11 @@ namespace Shared\App\Validator;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionProperty;
-use Shared\App\Validator\Annotations\IsOptional;
 use Shared\App\Validator\Exceptions\LocaleException;
 use Shared\App\Validator\Exceptions\PropertyException;
-use Shared\App\Validator\Interfaces\IValidationProperty;
+use Shared\App\Validator\Exceptions\ValidationErrorException;
+use Shared\App\Validator\Interfaces\IValidateConstrain;
+use Shared\App\Validator\Interfaces\IValidateConstraint;
 use Throwable;
 
 class Validator
@@ -22,50 +23,65 @@ class Validator
      * @param object $object Object that will be validated
      *
      * @return bool Success result
+     * @throws PropertyException
      */
-    public static function validate(object $object): bool
+    public static function validate(array $object, $target): bool
     {
-        if (!isset(static::$langDir)) {
-            static::$langDir = __DIR__ . '/../locale';
-        }
+        $reflection = new ReflectionClass($target);
 
-        if (!isset(static::$lang)) {
-            static::$lang = 'id';
-        }
-
-        $langFile = static::$langDir . '/' . static::$lang . '.php';
-        try {
-            $locales = require $langFile;
-        } catch (Throwable $th) {
-            throw new LocaleException($th->getMessage(), $th->getCode(), $th);
-        }
-
-        PropertyException::setMessageList($locales);
-
-        $reflection = new ReflectionClass($object);
         $properties = $reflection->getProperties();
-        foreach ($properties as $property) {
-            self::validateProperty($property, $object);
-        }
 
+        var_dump($properties);
+
+//        $reflection = new ReflectionClass($object);
+//        $properties = $reflection->getProperties();
+//
+//
+        $errors = [];
+//
+        foreach ($properties as $property) {
+            $constraint = self::validateProperty($property, $object);
+
+            if (empty($constraint)) continue;
+
+            $errors[] = $constraint;
+        }
+//
+        if(count($errors)) {
+            throw new ValidationErrorException($errors);
+        }
+//
         return true;
     }
 
-    protected static function validateProperty(ReflectionProperty $property, object $object): void
+    protected static function validateProperty(ReflectionProperty $property, object $object): array
     {
-        if (!$property->isInitialized($object) || $property->getValue($object) === '' || $property->getValue($object) === null) {
-            if (!$property->getAttributes(IsOptional::class)) {
-                throw new PropertyException($property, 'NOT_EMPTY');
-            }
+        $attributes = $property->getAttributes(IValidateConstraint::class, ReflectionAttribute::IS_INSTANCEOF);
 
-            return;
-        }
+        $constraint = [
+            'property' => $property->getName(),
+            'value' => $object->{$property->getName()},
+            'constraint' => [],
+        ];
 
-        $attributes = $property->getAttributes(IValidationProperty::class, ReflectionAttribute::IS_INSTANCEOF);
         foreach ($attributes as $attribute) {
+            $attributePathName = explode('\\', $attribute->getName());
+            $annotationsName = end($attributePathName);
+
             $instance = $attribute->newInstance();
-            $instance->validateProperty($property, $object);
+            $isValid = $instance->validate($property, $object);
+
+            if (!$isValid) {
+                $constraint['constraint'][] = [
+                    'name' => $annotationsName,
+                    'message' => $instance->defaultMessage($property, $object),
+                    'langKey' => null,
+                ];
+            }
         }
+
+        return $constraint['constraint'] ? $constraint : [];
+
     }
 
     /**
