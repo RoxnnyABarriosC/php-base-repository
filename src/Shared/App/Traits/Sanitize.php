@@ -17,7 +17,7 @@ trait Sanitize
 
             $value = $data[$property] ?? $this?->$property ?? null;
 
-            if (array_key_exists($property, $nestedProperties)) {
+            if (array_key_exists($property, $nestedProperties) && !empty($nestedProperties[$property])) {
                 $this->$property = $this->sanitizeNestedProperty($value, $nestedProperties[$property]);
                 continue;
             }
@@ -41,7 +41,7 @@ trait Sanitize
         return $this;
     }
 
-    private function sanitizeNestedProperty(mixed $data, mixed $nested): array
+    private function sanitizeNestedProperty(mixed $data, mixed $nested): mixed
     {
         if ($this->isMultiDimensionalArray($data)) {
             return array_map(fn($item) => (new $nested())->sanitize($item), $data);

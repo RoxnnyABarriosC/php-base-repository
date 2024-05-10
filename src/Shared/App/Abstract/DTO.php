@@ -6,18 +6,21 @@ use Shared\App\Traits\Magic;
 use Shared\App\Traits\Sanitize;
 use Respect\Validation\Validator as v;
 use Respect\Validation\ChainedValidator;
+use Shared\App\Validator\Exceptions\LocaleException;
+use Shared\App\Validator\Validator;
 
 abstract class DTO
 {
     use Magic, Sanitize;
 
-    public static function validate($data): DTO|array
+    /**
+     * @throws LocaleException
+     */
+    public static function validate($data): DTO|array|static
     {
         $data = (new static())->sanitize($data);
 
-        $validator = static::schema();
-
-        $validator->assert(json_decode(json_encode($data)));
+        Validator::validate($data);
 
         return $data;
     }

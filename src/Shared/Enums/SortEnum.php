@@ -2,8 +2,12 @@
 
 namespace Shared\Enums;
 
-enum SortEnum: string
+use Shared\App\Traits\Enum;
+
+enum SortEnum
 {
-    case ASC = 'ASC';
-    case DESC = 'DESC';
+    use Enum;
+
+    case ASC;
+    case DESC;
 }

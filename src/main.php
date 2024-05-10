@@ -4,9 +4,10 @@ require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Shared/App/Router/Response.php';
 require_once __DIR__ . '/Shared/Utils/Transformers.php';
 
-use Modules\Example\ExampleModule;
+use Modules\Task\TaskModule;
 use Shared\App\Router\Enums\HttpStatus;
 use Shared\App\Router\Router;
+use Shared\App\Validator\Validator;
 
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
@@ -20,10 +21,13 @@ $notFound = fn() => Response('Route not found', HttpStatus::NOT_FOUND);
 Router::pathNotFound($notFound);
 Router::methodNotAllowed($notFound);
 
-Router::registerModules(ExampleModule::class);
+Router::registerModules(TaskModule::class);
 
 //echo json_encode(Router::getAll());
 
+
+Validator::setLang('es');
+Validator::setLangDir(__DIR__ . '/Config/Locales');
 Router::build(
     basePath: '/api',
     caseMatters: true,

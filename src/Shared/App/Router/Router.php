@@ -98,3 +98,4 @@ class Router
 }
 
 define("BODY", json_decode(file_get_contents('php://input'), true) ?? []);
+define("QUERY", $_GET);
