@@ -73,6 +73,9 @@ function MapErrors(NestedValidationException $exception): array
 #[NoReturn]
 function ExceptionHandler($exception): never
 {
+
+//    echo $exception . PHP_EOL;
+
     $statusCode = $exception->getCode() ?: HttpStatus::INTERNAL_SERVER_ERROR->value;
     $errorCode = $exception instanceof HttpException ? $exception->getErrorCode() : 'ERROR';
     $errorMessage = $exception->getMessage();

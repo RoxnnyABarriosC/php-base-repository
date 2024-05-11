@@ -6,7 +6,6 @@ namespace Shared\App\Validator;
 use Exception;
 use ReflectionAttribute;
 use ReflectionClass;
-use ReflectionProperty;
 use Shared\App\Router\Enums\HttpStatus;
 use Shared\App\Validator\Annotations\Allow;
 use Shared\App\Validator\Annotations\IsOptional;
@@ -66,14 +65,14 @@ class Transformer
     public static function validate(array $data, $target): object
     {
         $reflection = new ReflectionClass($target);
-
         $properties = $reflection->getProperties();
 
         $targetInstance = new $target();
+        $object = json_decode(json_encode($data));
 
         $errors = [];
 
-        foreach ($data as $key => $value) {
+        foreach ($object as $key => $value) {
 
             $result = array_filter($properties, fn($item) => $item->getName() === $key);
             $property = reset($result);
@@ -92,6 +91,11 @@ class Transformer
 
             if (self::$whiteList && !$hasAnnotations) {
                 unset($data[$key]);
+                continue;
+            }
+
+            if (is_bool($property)) {
+                $targetInstance->$key = $value;
                 continue;
             }
 
@@ -115,51 +119,19 @@ class Transformer
                 if (!$isValid) {
                     $constraint['constraint'][] = [
                         'name' => $annotationsName,
-                        'message' => $instance->defaultMessage($property, $targetInstance),
+                        'message' => $instance->defaultMessage($property, $object),
                         'langKey' => null,
                     ];
                 }
             }
 
-            $constraint['constraint'] ? $errors[]  = $constraint : null;
+            $constraint['constraint'] ? $errors[] = $constraint : null;
         }
 
-
-        if(count($errors)) {
+        if (count($errors)) {
             throw new ValidationErrorException($errors);
         }
 
-
         return $targetInstance;
-    }
-
-    protected static function validateProperty(ReflectionProperty $property, object $object): array
-    {
-        $attributes = $property->getAttributes(IValidateConstraint::class, ReflectionAttribute::IS_INSTANCEOF);
-
-        $constraint = [
-            'property' => $property->getName(),
-            'value' => $object->{$property->getName()},
-            'constraint' => [],
-        ];
-
-        foreach ($attributes as $attribute) {
-            $attributePathName = explode('\\', $attribute->getName());
-            $annotationsName = end($attributePathName);
-
-            $instance = $attribute->newInstance();
-            $isValid = $instance->validate($property, $object);
-
-            if (!$isValid) {
-                $constraint['constraint'][] = [
-                    'name' => $annotationsName,
-                    'message' => $instance->defaultMessage($property, $object),
-                    'langKey' => null,
-                ];
-            }
-        }
-
-        return $constraint['constraint'] ? $constraint : [];
-
     }
 }

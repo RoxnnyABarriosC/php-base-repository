@@ -28,7 +28,7 @@ class SaveTaskDto // extends DTO
     #[IsString()]
     public mixed $status = TaskStatusEnum::PENDING;
 
-//    #[Allow]
+    #[Allow]
     public mixed $unknown;
 
 }

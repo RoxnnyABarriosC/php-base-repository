@@ -29,8 +29,8 @@ Router::registerModules(TaskModule::class);
 
 Transformer::build(
     whiteList: true,
-    forbidNonWhitelisted: false,
-    forbidUnknownValues: true,
+    forbidNonWhitelisted: true,
+    forbidUnknownValues: false,
 );
 
 Validator::setLang('es');

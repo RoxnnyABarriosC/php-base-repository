@@ -27,6 +27,8 @@ class IsEnum implements IValidateConstraint
     {
         $value = $property->getValue($object);
 
+//        var_dump($object);
+
         if ($this->each && is_array($value)) {
             return !in_array(false, array_map(fn($item) => is_string($item) && in_array($item, $this->enum::in()), $value));
         }
