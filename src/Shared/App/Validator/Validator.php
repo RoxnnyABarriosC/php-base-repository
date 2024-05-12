@@ -31,14 +31,8 @@ class Validator
 
         $properties = $reflection->getProperties();
 
-        var_dump($properties);
-
-//        $reflection = new ReflectionClass($object);
-//        $properties = $reflection->getProperties();
-//
-//
         $errors = [];
-//
+
         foreach ($properties as $property) {
             $constraint = self::validateProperty($property, $object);
 
@@ -46,11 +40,11 @@ class Validator
 
             $errors[] = $constraint;
         }
-//
+
         if(count($errors)) {
             throw new ValidationErrorException($errors);
         }
-//
+
         return true;
     }
 

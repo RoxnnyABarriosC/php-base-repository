@@ -3,7 +3,6 @@
 namespace Shared\App\Validator\Annotations;
 
 use Attribute;
-use Shared\App\Validator\Interfaces\IValidateConstrain;
 
 /**
  * Validate the value is instance of object and execute validation
@@ -14,6 +13,5 @@ class ValidateNested
     public function __construct(
         public bool $each = false
     )
-    {
-    }
+    {    }
 }
