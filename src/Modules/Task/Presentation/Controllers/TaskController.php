@@ -30,7 +30,7 @@ class TaskController
     #[Post()]
     public function save(): void
     {
-        $dto = Transformer::validate_(BODY, SaveTaskDto::class);
+        $dto = Transformer::validate(BODY, SaveTaskDto::class);
 
 //        var_dump($dto);
 
