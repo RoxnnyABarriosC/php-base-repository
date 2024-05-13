@@ -2,6 +2,8 @@
 
 namespace Shared\App\Router;
 
+use Shared\App\Router\Enums\HttpStatus;
+use Shared\App\Router\Exceptions\HttpException;
 use Shared\App\Router\Traits\Route;
 
 /**
@@ -97,5 +99,10 @@ class Router
     }
 }
 
+
 define("BODY", json_decode(file_get_contents('php://input')) ?? []);
 define("QUERY", $_GET);
+
+if (!is_object(BODY)) {
+    throw new HttpException(HttpStatus::BAD_REQUEST,'Invalid request body', 'INVALID_REQUEST_BODY');
+}

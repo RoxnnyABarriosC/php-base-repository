@@ -106,10 +106,10 @@ class Transformer
         $target->$key = $_constraint->value;
     }
 
-    private static function forbidNonWhitelisted(object $object, string $property, bool $nested = false): object
+    private static function forbidNonWhitelisted(object $object, string $property, object|array &$constraint): void
     {
         if (self::$forbidNonWhitelisted) {
-            $constraint = (object)[
+            $constraint[] = (object)[
                 'property' => $property,
                 'value' => $object->$property,
                 'constraint' => [
@@ -121,15 +121,7 @@ class Transformer
                 ]
             ];
 
-            if (!$nested) {
-                self::$errors[] = $constraint;
-            }
-
-            return $constraint;
         }
-
-        unset($object->$property);
-        return new stdClass();
     }
 
 
@@ -198,12 +190,7 @@ class Transformer
             $hasAnnotations = self::hasAnnotations($property);
 
             if (self::$whiteList && !$hasAnnotations) {
-                if ($nested) {
-                    $constraint[] = self::forbidNonWhitelisted($object, $key, true);
-                    continue;
-                }
-
-                self::forbidNonWhitelisted($object, $key);
+                self::forbidNonWhitelisted($object, $key, $constraint, true);
                 continue;
             }
 
@@ -258,13 +245,19 @@ class Transformer
         _Object::assign($nestedObject, $value);
 
         $constraint->children = [];
-//
+
 //        foreach ($nestedObject as $key => $nestedValue) {
 //            $property = self::getProperty($properties, $key);
 //            $hasAnnotations = self::hasAnnotations($property);
 //
 //            if (self::$whiteList && !$hasAnnotations) {
-//                $constraint->constraint[] = self::forbidNonWhitelisted($nestedObject, $key, true);
+//
+//                echo $key . PHP_EOL;
+//                echo json_encode($nestedObject->$key) . PHP_EOL;
+//
+//                self::forbidNonWhitelisted($nestedObject, $key, $constraint->constraint, true);
+//
+//                var_dump($constraint->constraint);
 //                continue;
 //            }
 //
@@ -294,7 +287,7 @@ class Transformer
 //                constraint: $constraint->children
 //            );
 //        }
-
+////
         self::validateObject(
             properties: $properties,
             object: $nestedObject,
