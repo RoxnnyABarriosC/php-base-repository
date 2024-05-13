@@ -13,6 +13,7 @@ use Shared\App\Validator\Annotations\Type;
 use Shared\App\Validator\Annotations\ValidateNested;
 use Shared\App\Validator\Exceptions\ValidationErrorException;
 use Shared\App\Validator\Interfaces\IValidateConstraint;
+use Shared\Utils\_Object;
 use stdClass;
 
 class Transformer
@@ -37,66 +38,6 @@ class Transformer
         self::$errorHttpStatusCode = $errorHttpStatusCode;
     }
 
-    /**
-     * @throws \ReflectionException
-     * @throws ValidationErrorException
-     * @throws Exception
-     */
-    public static function validate(object $data, $target): object
-    {
-        $reflection = new ReflectionClass($target);
-        $properties = $reflection->getProperties();
-
-        $object = new $target();
-        $targetInstance = new $target();
-
-        foreach ($data as $property => $value) {
-            $object->$property = $value;
-        }
-
-        foreach ($object as $key => $value) {
-            $property = self::getProperty($properties, $key);
-            $hasAnnotations = self::hasAnnotations($property);
-
-            if (self::$whiteList && !$hasAnnotations) {
-                if (self::$forbidNonWhitelisted) {
-                    throw new Exception("Property $key not found", self::$errorHttpStatusCode->value);
-                }
-                unset($object->$key);
-                continue;
-            }
-
-            if (!self::$whiteList && !$property) {
-                $targetInstance->$key = $value;
-                continue;
-            }
-
-            if (self::hasNestedAnnotations($property)) {
-                $nestedPropertyConstraint = self::validateNestedProperty($property, $value, $object);
-
-//                echo json_encode($nestedPropertyConstraint, JSON_PRETTY_PRINT) . PHP_EOL;
-
-                if (!empty($nestedPropertyConstraint->constraint->constraint) ||
-                    !empty($nestedPropertyConstraint->constraint->children)
-                ) {
-                    self::$errors[] = $nestedPropertyConstraint->constraint;
-                }
-
-                $targetInstance->$key = $nestedPropertyConstraint->value;
-                continue;
-            }
-
-            $propertyConstraint = self::validateProperty($property, $value, $object);
-
-            if (!empty($propertyConstraint->constraint->constraint)) {
-                self::$errors[] = $propertyConstraint->constraint;
-            }
-
-            $targetInstance->$key = $propertyConstraint->value;
-        }
-
-        return $targetInstance;
-    }
 
     /**
      * @throws \ReflectionException
@@ -112,6 +53,84 @@ class Transformer
 
         return $obj;
     }
+
+    /**
+     * @throws \ReflectionException
+     * @throws ValidationErrorException
+     * @throws Exception
+     */
+    public static function validate(object $data, $target): object
+    {
+        $reflection = new ReflectionClass($target);
+        $properties = $reflection->getProperties();
+
+        $object = new $target();
+        $targetInstance = new $target();
+
+        _Object::assign($object, $data);
+
+        self::validateObject(
+            properties: $properties,
+            object: $object,
+            target: $targetInstance,
+            constraint: self::$errors
+        );
+
+        return $targetInstance;
+    }
+
+
+    private static function property(ReflectionProperty $property, object $object, string $key, mixed $value, object &$target, object|array &$constraint): void
+    {
+        $_constraint = self::validateProperty($property, $value, $object);
+
+        if (!empty($_constraint->constraint->constraint)) {
+            $constraint[] = $_constraint->constraint;
+        }
+
+        $target->$key = $_constraint->value;
+    }
+
+
+    private static function nestedProperty(ReflectionProperty $property, object $object, string $key, mixed $value, object &$target, array|object &$constraint): void
+    {
+        $_constraint = self::validateNestedProperty($property, $value, $object);
+
+        if (!empty($_constraint->constraint->constraint) ||
+            !empty($_constraint->constraint->children)
+        ) {
+            $constraint[] = $_constraint->constraint;
+        }
+
+        $target->$key = $_constraint->value;
+    }
+
+    private static function forbidNonWhitelisted(object $object, string $property, bool $nested = false): object
+    {
+        if (self::$forbidNonWhitelisted) {
+            $constraint = (object)[
+                'property' => $property,
+                'value' => $object->$property,
+                'constraint' => [
+                    [
+                        'name' => 'unknown',
+                        'message' => 'Property not found',
+                        'langKey' => null,
+                    ]
+                ]
+            ];
+
+            if (!$nested) {
+                self::$errors[] = $constraint;
+            }
+
+            return $constraint;
+        }
+
+        unset($object->$property);
+        return new stdClass();
+    }
+
 
     private static function getProperty($properties, $key): ReflectionProperty|bool
     {
@@ -169,10 +188,53 @@ class Transformer
         return $data;
     }
 
-    /**
-     * //     * @throws \ReflectionException
-     * //     * @throws ValidationErrorException
-     * //     */
+
+    private static function validateObject(array $properties, object $object, object &$target, object|array &$constraint): void
+    {
+        $nested = is_object($constraint);
+
+        foreach ($object as $key => $value) {
+            $property = self::getProperty($properties, $key);
+            $hasAnnotations = self::hasAnnotations($property);
+
+            if (self::$whiteList && !$hasAnnotations) {
+                if ($nested) {
+                    $constraint->constraint[] = self::forbidNonWhitelisted($object, $key, true);
+                    continue;
+                }
+
+                self::forbidNonWhitelisted($object, $key);
+                continue;
+            }
+
+            if (!self::$whiteList && !$property) {
+                $target->$key = $value;
+                continue;
+            }
+
+            if (self::hasNestedAnnotations($property)) {
+                self::nestedProperty(
+                    property: $property,
+                    object: $object,
+                    key: $key,
+                    value: $value,
+                    target: $target,
+                    constraint: $constraint
+                );
+                continue;
+            }
+
+            self::property(
+                property: $property,
+                object: $object,
+                key: $key,
+                value: $value,
+                target: $target,
+                constraint: $constraint
+            );
+        }
+    }
+
     private static function validateNestedProperty(ReflectionProperty $property, mixed $value, object $object): object
     {
 
@@ -185,51 +247,64 @@ class Transformer
         $propertyConstraint = self::validateProperty($property, $value, $object);
         $constraint = $propertyConstraint->constraint;
 
-        if (is_object($value)) {
-
-            foreach ($value as $property_ => $value_) {
-                $nestedObject->$property_ = $value_;
-            }
-
-            $constraint->children = [];
-
-            foreach ($nestedObject as $key => $nestedValue) {
-                $property = self::getProperty($properties, $key);
-                $hasAnnotations = self::hasAnnotations($property);
-
-                if (self::$whiteList && !$hasAnnotations) {
-                    if (self::$forbidNonWhitelisted) {
-                        throw new Exception("Property $key not found", self::$errorHttpStatusCode->value);
-                    }
-                    unset($nestedObject->$key);
-                    continue;
-                }
-
-                if (!self::$whiteList && !$property) {
-                    $nestedTargetInstance->$key = $nestedObject->$key;
-                    continue;
-                }
-
-                if (self::hasNestedAnnotations($property)) {
-                    $nestedTargetInstance->$key = self::validateNestedProperty($property, $nestedObject->$key, $nestedObject);
-                    continue;
-                }
-
-                $propertyConstraint = self::validateProperty($property, $nestedObject->$key, $nestedObject);
-
-                if (!empty($propertyConstraint->constraint->constraint)) {
-                    $constraint->children[] = $propertyConstraint->constraint;
-                }
-
-                $nestedTargetInstance->$key = $propertyConstraint->value;
-            }
-
-        }
-
         $data = new stdClass();
-
         $data->constraint = $constraint;
         $data->value = is_object($value) ? $nestedTargetInstance : $value;
+
+        if (!is_object($value)) {
+            return $data;
+        };
+
+        _Object::assign($nestedObject, $value);
+
+        $constraint->children = [];
+
+        foreach ($nestedObject as $key => $nestedValue) {
+            $property = self::getProperty($properties, $key);
+            $hasAnnotations = self::hasAnnotations($property);
+
+            if (self::$whiteList && !$hasAnnotations) {
+                $constraint->constraint[] = self::forbidNonWhitelisted($nestedObject, $key, true);
+                continue;
+            }
+
+            if (!self::$whiteList && !$property) {
+                $nestedTargetInstance->$key = $nestedValue;
+                continue;
+            }
+
+            if (self::hasNestedAnnotations($property)) {
+                self::nestedProperty(
+                    property: $property,
+                    object: $nestedObject,
+                    key: $key,
+                    value: $nestedValue,
+                    target: $nestedTargetInstance,
+                    constraint: $constraint->children
+                );
+                continue;
+            }
+
+            self::property(
+                property: $property,
+                object: $nestedObject,
+                key: $key,
+                value: $nestedValue,
+                target: $nestedTargetInstance,
+                constraint: $constraint->children
+            );
+        }
+
+//        self::validateObject(
+//            properties: $properties,
+//            object: $nestedObject,
+//            target: $nestedTargetInstance,
+//            constraint: $constraint->children
+//        );
+
+        var_dump($constraint->children);
+
+
 
         return $data;
     }

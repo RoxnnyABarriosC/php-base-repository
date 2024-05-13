@@ -29,7 +29,7 @@ Router::registerModules(TaskModule::class);
 
 Transformer::build(
     whiteList: true,
-    forbidNonWhitelisted: false,
+    forbidNonWhitelisted: true,
     forbidUnknownValues: false,
 );
 

@@ -22,8 +22,20 @@ class Meta {
     #[IsString()]
     public $description;
 
-    #[Allow]
-    public mixed $unknown;
+    #[IsObject()]
+    #[Type(Meta2::class)]
+    #[ValidateNested]
+    public mixed $nestedMeta;
+}
+
+
+class Meta2 {
+
+    #[IsString()]
+    public $name;
+
+    #[IsString()]
+    public $description;
 }
 
 
