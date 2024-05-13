@@ -15,7 +15,6 @@ use Shared\App\Validator\Annotations\ValidateNested;
 use Shared\App\Validator\Exceptions\ValidationErrorException;
 use Shared\App\Validator\Interfaces\IValidateConstraint;
 use Shared\Utils\_Object;
-use stdClass;
 
 /**
  * Class Validator
@@ -106,6 +105,7 @@ class Validator
      * @param object $target The target object to validate against.
      * @param ConstraintErrorModel[] $constraint The constraints to validate against.
      * @param ConstraintErrorModel[] $children The child constraints to validate against.
+     * @throws ReflectionException
      */
     private static function validateObject(array $properties, object $object, object &$target, array &$constraint, array &$children): void
     {
@@ -115,7 +115,7 @@ class Validator
             $hasAnnotations = self::hasAnnotations($property);
 
             if (self::$whiteList && !$hasAnnotations) {
-                self::forbidNonWhitelisted($object, $key, $constraint, true);
+                self::forbidNonWhitelisted($object, $key, $constraint);
                 continue;
             }
 
@@ -124,8 +124,8 @@ class Validator
                 continue;
             }
 
-            if (self::hasNestedAnnotations($property)) {
-                self::nestedProperty(
+            if (!self::hasNestedAnnotations($property)) {
+                self::property(
                     property: $property,
                     object: $object,
                     key: $key,
@@ -136,7 +136,7 @@ class Validator
                 continue;
             }
 
-            self::property(
+            self::nestedProperty(
                 property: $property,
                 object: $object,
                 key: $key,
@@ -177,6 +177,7 @@ class Validator
      * @param mixed $value The value of the property to validate.
      * @param object $target The target object to validate against.
      * @param ConstraintErrorModel[] $constraint The constraints to validate against.
+     * @throws ReflectionException
      */
     private static function nestedProperty(ReflectionProperty $property, object $object, string $key, mixed $value, object &$target, array|object &$constraint): void
     {
@@ -292,7 +293,7 @@ class Validator
     private static function forbidNonWhitelisted(object $object, string $property, array &$constraint): void
     {
         if (self::$forbidNonWhitelisted) {
-            $constraint[] = new  ConstraintErrorModel(
+            $constraint[] = new ConstraintErrorModel(
                 property: $property,
                 value: $object->$property,
                 constraint: [
@@ -304,6 +305,8 @@ class Validator
                 ],
                 children: []
             );
+
+            $constraint = array_reverse($constraint);
         }
     }
 
