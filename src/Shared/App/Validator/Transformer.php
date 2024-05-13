@@ -68,7 +68,7 @@ class Transformer
         return $targetInstance;
     }
 
-    private static function validateObject(array $properties, object $object, object &$target, object|array &$constraint, object|array &$children, bool $nested = false): void
+    private static function validateObject(array $properties, object $object, object &$target, object|array &$constraint, object|array &$children): void
     {
 
         foreach ($object as $key => $value) {
@@ -190,9 +190,8 @@ class Transformer
             properties: $properties,
             object: $nestedObject,
             target: $nestedTargetInstance,
-            constraint: $constraint->constraint,
-            children: $constraint->children,
-            nested: true
+            constraint: $constraint->children,
+            children: $constraint->children
         );
 
         return $data;
