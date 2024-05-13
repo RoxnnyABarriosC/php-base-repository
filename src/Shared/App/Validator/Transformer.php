@@ -73,7 +73,8 @@ class Transformer
             properties: $properties,
             object: $object,
             target: $targetInstance,
-            constraint: self::$errors
+            constraint: self::$errors,
+            children: self::$errors
         );
 
         return $targetInstance;
@@ -189,9 +190,8 @@ class Transformer
     }
 
 
-    private static function validateObject(array $properties, object $object, object &$target, object|array &$constraint): void
+    private static function validateObject(array $properties, object $object, object &$target, object|array &$constraint, object|array &$children, bool $nested = false): void
     {
-        $nested = is_object($constraint);
 
         foreach ($object as $key => $value) {
             $property = self::getProperty($properties, $key);
@@ -199,7 +199,7 @@ class Transformer
 
             if (self::$whiteList && !$hasAnnotations) {
                 if ($nested) {
-                    $constraint->constraint[] = self::forbidNonWhitelisted($object, $key, true);
+                    $constraint[] = self::forbidNonWhitelisted($object, $key, true);
                     continue;
                 }
 
@@ -219,7 +219,7 @@ class Transformer
                     key: $key,
                     value: $value,
                     target: $target,
-                    constraint: $constraint
+                    constraint: $children
                 );
                 continue;
             }
@@ -230,7 +230,7 @@ class Transformer
                 key: $key,
                 value: $value,
                 target: $target,
-                constraint: $constraint
+                constraint: $children
             );
         }
     }
@@ -258,53 +258,51 @@ class Transformer
         _Object::assign($nestedObject, $value);
 
         $constraint->children = [];
+//
+//        foreach ($nestedObject as $key => $nestedValue) {
+//            $property = self::getProperty($properties, $key);
+//            $hasAnnotations = self::hasAnnotations($property);
+//
+//            if (self::$whiteList && !$hasAnnotations) {
+//                $constraint->constraint[] = self::forbidNonWhitelisted($nestedObject, $key, true);
+//                continue;
+//            }
+//
+//            if (!self::$whiteList && !$property) {
+//                $nestedTargetInstance->$key = $nestedValue;
+//                continue;
+//            }
+//
+//            if (self::hasNestedAnnotations($property)) {
+//                self::nestedProperty(
+//                    property: $property,
+//                    object: $nestedObject,
+//                    key: $key,
+//                    value: $nestedValue,
+//                    target: $nestedTargetInstance,
+//                    constraint: $constraint->children
+//                );
+//                continue;
+//            }
+//
+//            self::property(
+//                property: $property,
+//                object: $nestedObject,
+//                key: $key,
+//                value: $nestedValue,
+//                target: $nestedTargetInstance,
+//                constraint: $constraint->children
+//            );
+//        }
 
-        foreach ($nestedObject as $key => $nestedValue) {
-            $property = self::getProperty($properties, $key);
-            $hasAnnotations = self::hasAnnotations($property);
-
-            if (self::$whiteList && !$hasAnnotations) {
-                $constraint->constraint[] = self::forbidNonWhitelisted($nestedObject, $key, true);
-                continue;
-            }
-
-            if (!self::$whiteList && !$property) {
-                $nestedTargetInstance->$key = $nestedValue;
-                continue;
-            }
-
-            if (self::hasNestedAnnotations($property)) {
-                self::nestedProperty(
-                    property: $property,
-                    object: $nestedObject,
-                    key: $key,
-                    value: $nestedValue,
-                    target: $nestedTargetInstance,
-                    constraint: $constraint->children
-                );
-                continue;
-            }
-
-            self::property(
-                property: $property,
-                object: $nestedObject,
-                key: $key,
-                value: $nestedValue,
-                target: $nestedTargetInstance,
-                constraint: $constraint->children
-            );
-        }
-
-//        self::validateObject(
-//            properties: $properties,
-//            object: $nestedObject,
-//            target: $nestedTargetInstance,
-//            constraint: $constraint->children
-//        );
-
-        var_dump($constraint->children);
-
-
+        self::validateObject(
+            properties: $properties,
+            object: $nestedObject,
+            target: $nestedTargetInstance,
+            constraint: $constraint->constraint,
+            children: $constraint->children,
+            nested: true
+        );
 
         return $data;
     }
