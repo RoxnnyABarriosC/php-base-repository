@@ -215,7 +215,6 @@ class Transformer
         }
     }
 
-
     private static function getProperty($properties, $key): ReflectionProperty|bool
     {
         $result = array_filter($properties, fn($item) => $item->getName() === $key);
