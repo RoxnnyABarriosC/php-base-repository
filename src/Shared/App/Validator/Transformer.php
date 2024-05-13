@@ -20,21 +20,24 @@ class Transformer
 {
     private static bool $whiteList = false;
     private static bool $forbidNonWhitelisted = false;
-    private static bool $forbidUnknownValues = false;
     private static HttpStatus $errorHttpStatusCode = HttpStatus::BAD_REQUEST;
 
+
+    /*
+     * The array of errors that occurred during validation.
+     *
+     * @var ConstraintErrorModel[] $errors The array of errors that occurred during validation.
+     * */
     private static array $errors = [];
 
     public static function build(
         bool       $whiteList = false,
         bool       $forbidNonWhitelisted = false,
-        bool       $forbidUnknownValues = false,
         HttpStatus $errorHttpStatusCode = HttpStatus::BAD_REQUEST,
     ): void
     {
         self::$whiteList = $whiteList;
         self::$forbidNonWhitelisted = $forbidNonWhitelisted;
-        self::$forbidUnknownValues = $forbidUnknownValues;
         self::$errorHttpStatusCode = $errorHttpStatusCode;
     }
 
@@ -68,7 +71,12 @@ class Transformer
         return $targetInstance;
     }
 
-    private static function validateObject(array $properties, object $object, object &$target, object|array &$constraint, object|array &$children): void
+    /**
+     * @param ReflectionProperty[] $properties The constraints that should be applied to the value.
+     * @param ConstraintErrorModel[] $constraint The constraints that should be applied to the value.
+     * @param ConstraintErrorModel[] $children The constraints that should be applied to the value.
+     */
+    private static function validateObject(array $properties, object $object, object &$target, array &$constraint, array &$children): void
     {
 
         foreach ($object as $key => $value) {
@@ -108,7 +116,11 @@ class Transformer
         }
     }
 
-    private static function property(ReflectionProperty $property, object $object, string $key, mixed $value, object &$target, object|array &$constraint): void
+    /**
+     *
+     * @param ConstraintErrorModel[]  $constraint The constraints that should be applied to the value.
+     */
+    private static function property(ReflectionProperty $property, object $object, string $key, mixed $value, object &$target, array &$constraint): void
     {
         $_constraint = self::validateProperty($property, $value, $object);
 
@@ -132,37 +144,38 @@ class Transformer
         $target->$key = $_constraint->value;
     }
 
-    private static function validateProperty(ReflectionProperty $property, mixed $value, object $object): stdClass
+    private static function validateProperty(ReflectionProperty $property, mixed $value, object $object): MapConstraint
     {
         $attributes = $property->getAttributes(IValidateConstraint::class, ReflectionAttribute::IS_INSTANCEOF);
 
-        $constraint = new stdClass();
-        $constraint->property = $property->getName();
-        $constraint->value = $value;
-        $constraint->constraint = [];
+        $constraint = new ConstraintErrorModel(
+            property: $property->getName(),
+            value: $value,
+            constraint: [],
+            children: []
+        );
 
         foreach ($attributes as $attribute) {
             $instance = $attribute->newInstance();
             $pathName = explode('\\', $attribute->getName());
 
             if (!$instance->validate($property, $object)) {
-                $constraint->constraint[] = [
-                    'name' => end($pathName),
-                    'message' => $instance->defaultMessage($property, $object),
-                    'langKey' => null,
-                ];
+                $constraint->constraint[] = new  ConstraintModel(
+                    name: end($pathName),
+                    message: $instance->defaultMessage($property, $object),
+                    langKey: null
+                );
             }
         }
 
-        $data = new stdClass();
+        return new MapConstraint(
+            value: $value,
+            constraint: $constraint
+        );
 
-        $data->constraint = $constraint;
-        $data->value = $value;
-
-        return $data;
     }
 
-    private static function validateNestedProperty(ReflectionProperty $property, mixed $value, object $object): object
+    private static function validateNestedProperty(ReflectionProperty $property, mixed $value, object $object): MapConstraint
     {
 
         $target = $property->getAttributes(Type::class)[0]->newInstance()->target;
@@ -174,9 +187,10 @@ class Transformer
         $propertyConstraint = self::validateProperty($property, $value, $object);
         $constraint = $propertyConstraint->constraint;
 
-        $data = new stdClass();
-        $data->constraint = $constraint;
-        $data->value = is_object($value) ? $nestedTargetInstance : $value;
+        $data = new MapConstraint(
+            value: is_object($value) ? $nestedTargetInstance : $value,
+            constraint: $constraint
+        );
 
         if (!is_object($value)) {
             return $data;
@@ -197,31 +211,40 @@ class Transformer
         return $data;
     }
 
-    private static function forbidNonWhitelisted(object $object, string $property, object|array &$constraint): void
+
+    /**
+     *
+     * @param ConstraintErrorModel[] $constraint The constraints that should be applied to the value.
+     */
+    private static function forbidNonWhitelisted(object $object, string $property, array &$constraint): void
     {
         if (self::$forbidNonWhitelisted) {
-            $constraint[] = (object)[
-                'property' => $property,
-                'value' => $object->$property,
-                'constraint' => [
-                    [
-                        'name' => 'unknown',
-                        'message' => 'Property not found',
-                        'langKey' => null,
-                    ]
-                ]
-            ];
-
+            $constraint[] = new  ConstraintErrorModel(
+                property: $property,
+                value: $object->$property,
+                constraint: [
+                    new ConstraintModel(
+                        name: 'forbidden',
+                        message: 'Property not allowed',
+                        langKey: null
+                    )
+                ],
+                children: []
+            );
         }
     }
 
-    private static function getProperty($properties, $key): ReflectionProperty|bool
+
+    /**
+     * @param ReflectionProperty[] $properties The constraints that should be applied to the value.
+     */
+    private static function getProperty(array $properties, string $key): ReflectionProperty|bool
     {
         $result = array_filter($properties, fn($item) => $item->getName() === $key);
         return reset($result);
     }
 
-    private static function hasAnnotations($property): bool
+    private static function hasAnnotations(ReflectionProperty $property): bool
     {
         if (!is_bool($property)) {
             $allow = (bool)$property->getAttributes(Allow::class);
@@ -232,7 +255,7 @@ class Transformer
         return false;
     }
 
-    private static function hasNestedAnnotations($property): bool
+    private static function hasNestedAnnotations(ReflectionProperty $property): bool
     {
         if (!is_bool($property)) {
             return (bool)$property->getAttributes(Type::class) && (bool)$property->getAttributes(ValidateNested::class);
