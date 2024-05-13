@@ -7,8 +7,8 @@ require_once __DIR__ . '/Shared/Utils/Transformers.php';
 use Modules\Task\TaskModule;
 use Shared\App\Router\Enums\HttpStatus;
 use Shared\App\Router\Router;
-use Shared\App\Validator\Transformer;
 use Shared\App\Validator\Validator;
+use Shared\App\Validator\Validator1;
 
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
@@ -26,14 +26,13 @@ Router::registerModules(TaskModule::class);
 
 //echo json_encode(Router::getAll());
 
-Transformer::build(
+Validator::build(
     whiteList: true,
-    forbidNonWhitelisted: false,
-    forbidUnknownValues: false,
+    forbidNonWhitelisted: true,
 );
 
-Validator::setLang('es');
-Validator::setLangDir(__DIR__ . '/Config/Locales');
+Validator1::setLang('es');
+Validator1::setLangDir(__DIR__ . '/Config/Locales');
 Router::build(
     basePath: '/api',
     caseMatters: true,

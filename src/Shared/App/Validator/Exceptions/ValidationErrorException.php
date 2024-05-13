@@ -18,10 +18,11 @@ class ValidationErrorException extends HttpException
      * Constructor for the ValidationErrorException class.
      *
      * @param ConstraintErrorModel[] $errors The array of errors that caused the exception.
+     * @param HttpStatus $status The HTTP status code for the exception.
      */
-    public function __construct(public array $errors)
+    public function __construct(public array $errors, HttpStatus $status = HttpStatus::BAD_REQUEST)
     {
-        parent::__construct(HttpStatus::BAD_REQUEST, 'Validation error', 'VALIDATION_ERROR');
+        parent::__construct($status, 'Validation error', 'VALIDATION_ERROR');
     }
 
     /**

@@ -12,8 +12,8 @@ use Shared\App\Router\Annotations\Get;
 use Shared\App\Router\Annotations\Post;
 use Shared\App\Router\Enums\HttpStatus;
 use Shared\App\Validator\Exceptions\LocaleException;
-use Shared\App\Validator\Transformer;
 use Shared\App\Validator\Validator;
+use Shared\App\Validator\Validator1;
 use Shared\Criterias\Criteria;
 use Shared\Criterias\PaginationFilter;
 
@@ -30,7 +30,7 @@ class TaskController
     #[Post()]
     public function save(): void
     {
-        $dto = Transformer::validate(BODY, SaveTaskDto::class);
+        $dto = Validator::validate(BODY, SaveTaskDto::class);
 
 //        var_dump($dto);
 

@@ -15,12 +15,12 @@ class ConstraintModel
      *
      * @param string $name The name of the constraint.
      * @param string $message The message that should be displayed when the constraint is violated.
-     * @param string $langKey The language key for localization.
+     * @param string|null $langKey The language key for localization.
      */
     public function __construct(
         public string $name,
         public string $message,
-        public string $langKey
+        public string|null $langKey
     )
     { }
 }
