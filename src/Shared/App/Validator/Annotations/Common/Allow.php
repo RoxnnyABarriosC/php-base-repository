@@ -1,6 +1,6 @@
 <?php
 
-namespace Shared\App\Validator\Annotations;
+namespace Shared\App\Validator\Annotations\Common;
 
 use Attribute;
 

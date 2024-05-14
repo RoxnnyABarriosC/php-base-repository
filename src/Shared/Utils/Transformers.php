@@ -7,11 +7,12 @@
 function Parse($value)
 {
     // Intenta decodificar como JSON
-    $jsonDecoded = json_decode($value, true);
 
-    if (json_last_error() == JSON_ERROR_NONE) {
-        $value = $jsonDecoded;
+    try {
+        $value = json_decode(json_encode($value));
+    } catch (Exception $e) {
     }
+
 
     // Si es una cadena, intenta convertir a número o fecha
     if (is_string($value)) {
@@ -24,7 +25,6 @@ function Parse($value)
             return new DateTime('@' . $date);
         }
     }
-
     return $value;
 }
 

@@ -14,11 +14,11 @@ class MapConstraint
      * Constructor for the MapConstraint class.
      *
      * @param mixed $value The value that needs to be validated.
-     * @param ConstraintErrorModel[] $constraint The constraints that should be applied to the value.
+     * @param ConstraintErrorModel|null $constraint The constraints that should be applied to the value.
      */
     public function __construct(
         public mixed $value,
-        public mixed $constraint,
+        public ConstraintErrorModel|null $constraint,
     )
     { }
 }

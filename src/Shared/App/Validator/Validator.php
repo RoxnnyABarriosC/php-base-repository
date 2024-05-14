@@ -2,16 +2,18 @@
 
 namespace Shared\App\Validator;
 
+require_once __DIR__ . '/../../Utils/Transformers.php';
+
 use Exception;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionProperty;
 use Shared\App\Router\Enums\HttpStatus;
-use Shared\App\Validator\Annotations\Allow;
-use Shared\App\Validator\Annotations\IsOptional;
-use Shared\App\Validator\Annotations\Type;
-use Shared\App\Validator\Annotations\ValidateNested;
+use Shared\App\Validator\Annotations\Common\Allow;
+use Shared\App\Validator\Annotations\Common\IsOptional;
+use Shared\App\Validator\Annotations\Common\Type;
+use Shared\App\Validator\Annotations\Common\ValidateNested;
 use Shared\App\Validator\Exceptions\ValidationErrorException;
 use Shared\App\Validator\Interfaces\IValidateConstraint;
 use Shared\Utils\_Object;
@@ -110,6 +112,10 @@ class Validator
     private static function validateObject(array $properties, object $object, object &$target, array &$constraint, array &$children): void
     {
 
+        foreach (get_object_vars($object) as $property => $value) {
+            $object->$property = $object->$property ?? null;
+        }
+
         foreach ($object as $key => $value) {
             $property = self::getProperty($properties, $key);
             $hasAnnotations = self::hasAnnotations($property);
@@ -144,6 +150,7 @@ class Validator
                 target: $target,
                 constraint: $children
             );
+
         }
     }
 
@@ -179,7 +186,7 @@ class Validator
      * @param ConstraintErrorModel[] $constraint The constraints to validate against.
      * @throws ReflectionException
      */
-    private static function nestedProperty(ReflectionProperty $property, object $object, string $key, mixed $value, object &$target, array|object &$constraint): void
+    private static function nestedProperty(ReflectionProperty $property, object $object, string $key, mixed $value, object &$target, array &$constraint): void
     {
         $_constraint = self::validateNestedProperty($property, $value, $object);
 
@@ -202,6 +209,15 @@ class Validator
      */
     private static function validateProperty(ReflectionProperty $property, mixed $value, object $object): MapConstraint
     {
+        $data = new MapConstraint(
+            value: $value,
+            constraint: null
+        );
+
+        if ($property->getAttributes(IsOptional::class) && !$value) {
+            return $data;
+        }
+
         $attributes = $property->getAttributes(IValidateConstraint::class, ReflectionAttribute::IS_INSTANCEOF);
 
         $constraint = new ConstraintErrorModel(
@@ -216,7 +232,7 @@ class Validator
             $pathName = explode('\\', $attribute->getName());
 
             if (!$instance->validate($property, $object)) {
-                $constraint->constraint[] = new  ConstraintModel(
+                $constraint->constraint[] = new ConstraintModel(
                     name: end($pathName),
                     message: $instance->defaultMessage($property, $object),
                     langKey: null
@@ -224,11 +240,9 @@ class Validator
             }
         }
 
-        return new MapConstraint(
-            value: $value,
-            constraint: $constraint
-        );
+        $data->constraint = $constraint;
 
+        return $data;
     }
 
     /**
@@ -249,7 +263,6 @@ class Validator
      */
     private static function validateNestedProperty(ReflectionProperty $property, mixed $value, object $object): MapConstraint
     {
-
         $target = $property->getAttributes(Type::class)[0]->newInstance()->target;
         $reflection = new ReflectionClass($target);
         $properties = $reflection->getProperties();
@@ -305,8 +318,6 @@ class Validator
                 ],
                 children: []
             );
-
-            $constraint = array_reverse($constraint);
         }
     }
 

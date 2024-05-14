@@ -2,16 +2,15 @@
 
 namespace Modules\Task\Presentation\Dto;
 
-use Shared\App\Abstract\DTO;
-use Respect\Validation\Validator as v;
-use Respect\Validation\ChainedValidator;
 use Modules\Task\Domain\Enums\TaskStatusEnum;
-use Shared\App\Validator\Annotations\Allow;
-use Shared\App\Validator\Annotations\IsEnum;
-use Shared\App\Validator\Annotations\IsObject;
-use Shared\App\Validator\Annotations\IsString;
-use Shared\App\Validator\Annotations\Type;
-use Shared\App\Validator\Annotations\ValidateNested;
+use Shared\App\Validator\Annotations\Common\Allow;
+use Shared\App\Validator\Annotations\Common\IsDefined;
+use Shared\App\Validator\Annotations\Common\IsOptional;
+use Shared\App\Validator\Annotations\Common\Type;
+use Shared\App\Validator\Annotations\Common\ValidateNested;
+use Shared\App\Validator\Annotations\TypeChecker\IsEnum;
+use Shared\App\Validator\Annotations\TypeChecker\IsObject;
+use Shared\App\Validator\Annotations\TypeChecker\IsString;
 
 
 class Meta {
@@ -42,22 +41,27 @@ class Meta2 {
 
 class SaveTaskDto // extends DTO
 {
+    #[IsDefined()]
     #[IsString()]
-    public mixed $name;
+    public mixed $name = null;
 
     #[IsString()]
-    public mixed $description;
+    #[IsOptional()]
+    public mixed $description = null;
 
     #[IsEnum(
         enum: TaskStatusEnum::class,
-//        each: true
+        each: true
     )]
-    #[IsString()]
+    #[IsString(
+        each: true
+    )]
     public mixed $status = TaskStatusEnum::PENDING;
 
     #[IsObject()]
     #[Type(Meta::class)]
     #[ValidateNested]
+    #[IsOptional()]
     public mixed $meta;
 
     #[Allow]

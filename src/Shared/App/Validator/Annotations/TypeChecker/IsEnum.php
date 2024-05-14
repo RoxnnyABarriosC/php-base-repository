@@ -1,39 +1,51 @@
 <?php
 
-namespace Shared\App\Validator\Annotations;
+namespace Shared\App\Validator\Annotations\TypeChecker;
 
 use Attribute;
+use Exception;
 use ReflectionProperty;
+use Shared\App\Traits\Enum;
 use Shared\App\Validator\Exceptions\PropertyException;
 use Shared\App\Validator\Interfaces\IValidateConstraint;
+use Shared\Utils\_Array;
 
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class IsEnum implements IValidateConstraint
 {
-    /** @param string $enum Enum namespace (example: MyEnum::class) * */
+    /**
+     * @param Enum $enum Enum namespace (example: MyEnum::class)
+     * @param string|null $message
+     * @param bool $each
+     */
     public function __construct(
-        private readonly string  $enum,
+        private readonly string $enum,
         public readonly ?string $message = null,
-        private readonly bool    $each = false
+        private readonly bool   $each = false
     )
     {
     }
 
     /**
      * @throws PropertyException
+     * @throws Exception
      */
     public function validate(ReflectionProperty $property, object $object): bool
     {
-        $value = $property->getValue($object);
-
-//        var_dump($object);
+        $value = Parse($property->getValue($object));
 
         if ($this->each && is_array($value)) {
-            return !in_array(false, array_map(fn($item) => is_string($item) && in_array($item, $this->enum::in()), $value));
+            return !in_array(false, array_map(fn($item) => is_string($item) && $this->enum::in($item), $value));
         }
 
-        return is_string($value) && in_array($value, $this->enum::in());
+        if(!is_string($value))
+        {
+            return false;
+        }
+
+        return $this->enum::in($value);
+
     }
 
     public function defaultMessage(ReflectionProperty $property, object $object): string

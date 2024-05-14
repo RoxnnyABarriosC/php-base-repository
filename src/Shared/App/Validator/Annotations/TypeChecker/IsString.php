@@ -1,6 +1,6 @@
 <?php
 
-namespace Shared\App\Validator\Annotations;
+namespace Shared\App\Validator\Annotations\TypeChecker;
 
 use Attribute;
 use ReflectionProperty;
@@ -19,12 +19,15 @@ class IsString implements IValidateConstraint
     }
 
 
+    /**
+     * @throws \Exception
+     */
     public function validate(ReflectionProperty $property, object $object): bool
     {
-        $value = $property->getValue($object);
+        $value = Parse($property->getValue($object));
 
         if ($this->each && is_array($value)) {
-            return !in_array(false, array_map(fn($item) => is_string($item), $value));
+            return !in_array(false, array_map(fn($item) => is_string(Parse($item)), $value));
         }
 
         return is_string($value);
