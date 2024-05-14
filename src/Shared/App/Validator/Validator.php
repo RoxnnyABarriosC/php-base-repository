@@ -17,6 +17,7 @@ use Shared\App\Validator\Annotations\Common\ValidateNested;
 use Shared\App\Validator\Exceptions\ValidationErrorException;
 use Shared\App\Validator\Interfaces\IValidateConstraint;
 use Shared\Utils\_Object;
+use stdClass;
 
 /**
  * Class Validator
@@ -112,7 +113,9 @@ class Validator
     private static function validateObject(array $properties, object $object, object &$target, array &$constraint, array &$children): void
     {
 
-        foreach (get_object_vars($object) as $property => $value) {
+        $annotatedProperties = self::getAnnotatedProperties($properties);
+
+        foreach ($annotatedProperties as $property) {
             $object->$property = $object->$property ?? null;
         }
 
@@ -168,7 +171,7 @@ class Validator
     {
         $_constraint = self::validateProperty($property, $value, $object);
 
-        if (!empty($_constraint->constraint->constraint)) {
+        if (!empty((array)$_constraint->constraint?->constraints)) {
             $constraint[] = $_constraint->constraint;
         }
 
@@ -190,7 +193,7 @@ class Validator
     {
         $_constraint = self::validateNestedProperty($property, $value, $object);
 
-        if (!empty($_constraint->constraint->constraint) ||
+        if (!empty((array)$_constraint->constraint->constraints) ||
             !empty($_constraint->constraint->children)
         ) {
             $constraint[] = $_constraint->constraint;
@@ -223,7 +226,7 @@ class Validator
         $constraint = new ConstraintErrorModel(
             property: $property->getName(),
             value: $value,
-            constraint: [],
+            constraints: (object)[],
             children: []
         );
 
@@ -232,11 +235,7 @@ class Validator
             $pathName = explode('\\', $attribute->getName());
 
             if (!$instance->validate($property, $object)) {
-                $constraint->constraint[] = new ConstraintModel(
-                    name: end($pathName),
-                    message: $instance->defaultMessage($property, $object),
-                    langKey: null
-                );
+                $constraint->constraints->{end($pathName)} = $instance->defaultMessage($property, $object);
             }
         }
 
@@ -306,16 +305,15 @@ class Validator
     private static function forbidNonWhitelisted(object $object, string $property, array &$constraint): void
     {
         if (self::$forbidNonWhitelisted) {
+
+            $constraints = new stdClass();
+
+            $constraints->WhitelistValidation = 'This property is not allowed';
+
             $constraint[] = new ConstraintErrorModel(
                 property: $property,
                 value: $object->$property,
-                constraint: [
-                    new ConstraintModel(
-                        name: 'forbidden',
-                        message: 'Property not allowed',
-                        langKey: null
-                    )
-                ],
+                constraints: $constraints,
                 children: []
             );
         }
@@ -363,5 +361,21 @@ class Validator
             return (bool)$property->getAttributes(Type::class) && (bool)$property->getAttributes(ValidateNested::class);
         }
         return false;
+    }
+
+    /**
+     * Get the annotated properties of an object.
+     *
+     * @param ReflectionProperty[] $properties The properties to validate against.
+     * @return string[] The annotated properties.
+     */
+    private static function getAnnotatedProperties(array $properties): array
+    {
+        return array_reduce($properties, function ($carry, $property) {
+            if (self::hasAnnotations($property)) {
+                $carry[] = $property->getName();
+            }
+            return $carry;
+        }, []);
     }
 }

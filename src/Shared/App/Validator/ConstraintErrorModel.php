@@ -16,13 +16,13 @@ class ConstraintErrorModel
      *
      * @param string $property The name of the property that violated the constraints.
      * @param mixed $value The value that was assigned to the property.
-     * @param ConstraintModel[] $constraint The constraints that were violated.
+     * @param object $constraints The constraints that were violated.
      * @param ConstraintErrorModel[] $children Any child constraints that were also violated.
      */
     public function __construct(
         public string $property,
         public mixed $value,
-        public array $constraint,
+        public object $constraints,
         public array $children
     )
     { }

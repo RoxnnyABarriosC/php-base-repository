@@ -41,13 +41,14 @@ class Meta2 {
 
 class SaveTaskDto // extends DTO
 {
-    #[IsDefined()]
+
+//    #[IsDefined()]
     #[IsString()]
-    public mixed $name = null;
+    public mixed $name;
 
     #[IsString()]
     #[IsOptional()]
-    public mixed $description = null;
+    public mixed $description;
 
     #[IsEnum(
         enum: TaskStatusEnum::class,
