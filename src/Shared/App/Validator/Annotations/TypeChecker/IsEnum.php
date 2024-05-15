@@ -10,10 +10,12 @@ use Shared\App\Validator\Exceptions\PropertyException;
 use Shared\App\Validator\Interfaces\IValidateConstraint;
 use Shared\Utils\_Array;
 
-
 /**
- * @param mixed $value Enum namespace (example: MyEnum::class)
- * @param Enum $enum Enum namespace (example: MyEnum::class)
+ * Function to check if a value is a valid enum member.
+ *
+ * @param mixed $value The value to check.
+ * @param Enum $enum The enum to check against.
+ * @return bool Returns true if the value is a valid enum member, false otherwise.
  * @throws Exception
  */
 function is_enum(mixed $value, mixed $enum): bool
@@ -21,13 +23,23 @@ function is_enum(mixed $value, mixed $enum): bool
     return is_string($value) && $enum::in($value);
 }
 
+/**
+ * Class IsEnum
+ *
+ * This class is a custom attribute used to validate if a property of an object is a valid enum member.
+ * Optionally, it can also validate if each item in an array is a valid enum member.
+ *
+ * @package Shared\App\Validator\Annotations\TypeChecker
+ */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class IsEnum implements IValidateConstraint
 {
     /**
-     * @param Enum $enum Enum namespace (example: MyEnum::class)
-     * @param string|null $message
-     * @param bool $each
+     * IsEnum constructor.
+     *
+     * @param Enum $enum The enum to check against.
+     * @param string|null $message Custom error message.
+     * @param bool $each If true, each item in the array should also be a valid enum member.
      */
     public function __construct(
         private readonly string $enum,
@@ -38,6 +50,11 @@ class IsEnum implements IValidateConstraint
     }
 
     /**
+     * Validate the property of an object.
+     *
+     * @param ReflectionProperty $property The property to validate.
+     * @param object $object The object containing the property.
+     * @return bool Returns true if the property is a valid enum member and, if $each is true, each item in the array is also a valid enum member.
      * @throws PropertyException
      * @throws Exception
      */
@@ -50,9 +67,15 @@ class IsEnum implements IValidateConstraint
         }
 
         return is_enum($value, $this->enum);
-
     }
 
+    /**
+     * Get the default error message.
+     *
+     * @param ReflectionProperty $property The property that failed validation.
+     * @param object $object The object containing the property.
+     * @return string Returns the custom error message if it exists, otherwise returns a default error message.
+     */
     public function defaultMessage(ReflectionProperty $property, object $object): string
     {
         $message = "Property {$property->getName()} must be a member of enum ({$this->enum::toString()})";
