@@ -6,6 +6,7 @@ use Attribute;
 use ReflectionProperty;
 use Shared\App\Validator\Exceptions\PropertyException;
 use Shared\App\Validator\Interfaces\IValidateConstraint;
+use Shared\Utils\_Array;
 
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
@@ -14,7 +15,8 @@ IsNumber implements IValidateConstraint
 {
 
     public function __construct(
-        public readonly ?string $message = null,
+        private readonly ?string $message = null,
+        private readonly bool    $each = false
     )
     {
     }
@@ -28,16 +30,20 @@ IsNumber implements IValidateConstraint
     {
         $value = $property->getValue($object);
 
-        if (!is_numeric($value)) {
-            return false;
+        if ($this->each && is_array($value)) {
+            return _Array::every($value, fn($item) => is_numeric($item));
         }
 
-        return true;
+        return is_numeric($value);
 
     }
 
     public function defaultMessage(ReflectionProperty $property, object $object): string
     {
-        return $this->message ?? "Property '{$property->getName()}' must be defined.";
+        if ($this->message) return $this->message;
+
+        $message = "Property {$property->getName()} must be a number";
+
+        return $this->each ? "All values of " . $message : $message;
     }
 }

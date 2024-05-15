@@ -3,6 +3,7 @@ require_once 'autoload.php';
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/Shared/App/Router/Response.php';
 require_once __DIR__ . '/Shared/Utils/Transformers.php';
+require_once __DIR__ . '/Shared/App/Validator/Annotations/TypeChecker/IsDate.php';
 
 use Modules\Task\TaskModule;
 use Shared\App\Router\Enums\HttpStatus;

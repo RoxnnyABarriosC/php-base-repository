@@ -3,8 +3,10 @@
 namespace Shared\App\Validator\Annotations\TypeChecker;
 
 use Attribute;
+use Exception;
 use ReflectionProperty;
 use Shared\App\Validator\Interfaces\IValidateConstraint;
+use Shared\Utils\_Array;
 
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
@@ -20,14 +22,14 @@ class IsString implements IValidateConstraint
 
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function validate(ReflectionProperty $property, object $object): bool
     {
         $value = Parse($property->getValue($object));
 
         if ($this->each && is_array($value)) {
-            return !in_array(false, array_map(fn($item) => is_string(Parse($item)), $value));
+            return _Array::every($value, fn($item) => is_string(Parse($item)));
         }
 
         return is_string($value);

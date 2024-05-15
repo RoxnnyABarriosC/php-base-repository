@@ -5,6 +5,7 @@ namespace Shared\App\Validator\Annotations\TypeChecker;
 use Attribute;
 use ReflectionProperty;
 use Shared\App\Validator\Interfaces\IValidateConstraint;
+use Shared\Utils\_Array;
 
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
@@ -24,11 +25,7 @@ class IsArray implements IValidateConstraint
         $value = $property->getValue($object);
 
         if ($this->each && is_array($value)) {
-            return !in_array(false, array_map(fn($item) => is_array($item), $value));
-        }
-
-        if (!is_array($value)) {
-            return false;
+            return _Array::every($value, fn($item) => is_array($item));
         }
 
         return is_array($value);

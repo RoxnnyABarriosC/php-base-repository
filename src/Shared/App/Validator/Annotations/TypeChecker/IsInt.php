@@ -6,6 +6,7 @@ use Attribute;
 use ReflectionProperty;
 use Shared\App\Validator\Exceptions\PropertyException;
 use Shared\App\Validator\Interfaces\IValidateConstraint;
+use Shared\Utils\_Array;
 
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
@@ -15,6 +16,7 @@ IsInt implements IValidateConstraint
 
     public function __construct(
         public readonly ?string $message = null,
+        private readonly bool   $each = false
     )
     {
     }
@@ -28,17 +30,20 @@ IsInt implements IValidateConstraint
     {
         $value = $property->getValue($object);
 
-        // 	Checks if the value is an integer number.
-        if (!is_numeric($value)) {
-            return false;
+        if ($this->each && is_array($value)) {
+            return _Array::every($value, fn($item) => is_int($item));
         }
 
-        return true;
+        return is_int($value);
 
     }
 
     public function defaultMessage(ReflectionProperty $property, object $object): string
     {
-        return $this->message ?? "Property '{$property->getName()}' must be defined.";
+        if ($this->message) return $this->message;
+
+        $message = "Property {$property->getName()} must be a integer number";
+
+        return $this->each ? "All values of " . $message : $message;
     }
 }

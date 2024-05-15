@@ -11,6 +11,16 @@ use Shared\App\Validator\Interfaces\IValidateConstraint;
 use Shared\Utils\_Array;
 
 
+/**
+ * @param mixed $value Enum namespace (example: MyEnum::class)
+ * @param Enum $enum Enum namespace (example: MyEnum::class)
+ * @throws Exception
+ */
+function is_enum(mixed $value, mixed $enum): bool
+{
+    return is_string($value) && $enum::in($value);
+}
+
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class IsEnum implements IValidateConstraint
 {
@@ -36,15 +46,10 @@ class IsEnum implements IValidateConstraint
         $value = Parse($property->getValue($object));
 
         if ($this->each && is_array($value)) {
-            return !in_array(false, array_map(fn($item) => is_string($item) && $this->enum::in($item), $value));
+            return _Array::every($value, fn($item) => is_enum($item, $this->enum));
         }
 
-        if(!is_string($value))
-        {
-            return false;
-        }
-
-        return $this->enum::in($value);
+        return is_enum($value, $this->enum);
 
     }
 

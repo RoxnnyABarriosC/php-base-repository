@@ -8,7 +8,11 @@ use Shared\App\Validator\Annotations\Common\IsOptional;
 use Shared\App\Validator\Annotations\Common\Type;
 use Shared\App\Validator\Annotations\Common\ValidateNested;
 use Shared\App\Validator\Annotations\TypeChecker\IsArray;
+use Shared\App\Validator\Annotations\TypeChecker\IsBoolean;
+use Shared\App\Validator\Annotations\TypeChecker\IsDate;
 use Shared\App\Validator\Annotations\TypeChecker\IsEnum;
+use Shared\App\Validator\Annotations\TypeChecker\IsInt;
+use Shared\App\Validator\Annotations\TypeChecker\IsNumber;
 use Shared\App\Validator\Annotations\TypeChecker\IsObject;
 use Shared\App\Validator\Annotations\TypeChecker\IsString;
 
@@ -58,6 +62,7 @@ class SaveTaskDto // extends DTO
     #[IsString(
         each: true
     )]
+    #[IsArray()]
     public mixed $status = TaskStatusEnum::PENDING;
 
     #[IsObject(
@@ -70,7 +75,11 @@ class SaveTaskDto // extends DTO
     #[IsArray()]
     public mixed $meta;
 
-    #[Allow]
+//    #[Allow]
+    #[IsDate(
+        each: true,
+//        message: 'The value must be a boolean'
+    )]
     public mixed $unknown;
 
 }
