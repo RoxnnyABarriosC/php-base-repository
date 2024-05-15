@@ -7,6 +7,7 @@ require_once __DIR__ . '/Shared/Utils/Transformers.php';
 use Modules\Task\TaskModule;
 use Shared\App\Router\Enums\HttpStatus;
 use Shared\App\Router\Router;
+use Shared\App\Validator\ConstraintErrorModel;
 use Shared\App\Validator\Validator;
 use Shared\App\Validator\Validator1;
 
@@ -26,9 +27,38 @@ Router::registerModules(TaskModule::class);
 
 //echo json_encode(Router::getAll());
 
+/**
+ * @param ConstraintErrorModel[] $errors
+ */
+$mapErrors = function (array $errors) {
+
+    $errorModel = function (ConstraintErrorModel $error) use (&$errorModel) {
+        $newError = new stdClass();
+        $newError->property = $error->property;
+
+        if (!empty((array)$error->constraints)) {
+            $newError->constraints = $error->constraints;
+        }
+
+        if (!empty($error->children)) {
+            $newError->children = [];
+
+            foreach ($error->children as $children) {
+                $newError->children[] = $errorModel($children);
+            }
+        }
+
+        return $newError;
+    };
+
+    return array_map($errorModel, $errors);
+};
+
+
 Validator::build(
     whiteList: true,
     forbidNonWhitelisted: true,
+    mapError: $mapErrors(...)
 );
 
 Validator1::setLang('es');

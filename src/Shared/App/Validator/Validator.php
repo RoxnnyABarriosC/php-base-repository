@@ -42,6 +42,8 @@ class Validator
      */
     private static HttpStatus $errorHttpStatusCode = HttpStatus::BAD_REQUEST;
 
+    private static $mapError;
+
     /**
      * @var ConstraintErrorModel[] $errors The array of errors that occurred during validation.
      */
@@ -53,16 +55,19 @@ class Validator
      * @param bool $whiteList Whether to only allow properties that are explicitly whitelisted.
      * @param bool $forbidNonWhitelisted Whether to forbid properties that are not whitelisted.
      * @param HttpStatus $errorHttpStatusCode The HTTP status code to use for validation errors.
+     * @param callable|null $mapError The callback function to use for mapping errors.
      */
     public static function build(
         bool       $whiteList = false,
         bool       $forbidNonWhitelisted = false,
         HttpStatus $errorHttpStatusCode = HttpStatus::BAD_REQUEST,
+        callable   $mapError = null
     ): void
     {
         self::$whiteList = $whiteList;
         self::$forbidNonWhitelisted = $forbidNonWhitelisted;
         self::$errorHttpStatusCode = $errorHttpStatusCode;
+        self::$mapError = $mapError;
     }
 
     /**
@@ -94,7 +99,15 @@ class Validator
         );
 
         if (count(self::$errors)) {
-            throw new ValidationErrorException(self::$errors, self::$errorHttpStatusCode);
+
+            $errors = self::$errors;
+
+            if (self::$mapError) {
+                $mapError = self::$mapError;
+                $errors = $mapError(self::$errors);
+            }
+
+            throw new ValidationErrorException($errors, self::$errorHttpStatusCode);
         }
 
         return $targetInstance;
@@ -171,9 +184,7 @@ class Validator
     {
         $_constraint = self::validateProperty($property, $value, $object);
 
-        if (!empty((array)$_constraint->constraint?->constraints)) {
-            $constraint[] = $_constraint->constraint;
-        }
+        self::setConstraint($_constraint->constraint, $constraint);
 
         $target->$key = $_constraint->value;
     }
@@ -193,11 +204,7 @@ class Validator
     {
         $_constraint = self::validateNestedProperty($property, $value, $object);
 
-        if (!empty((array)$_constraint->constraint->constraints) ||
-            !empty($_constraint->constraint->children)
-        ) {
-            $constraint[] = $_constraint->constraint;
-        }
+        self::setConstraint($_constraint->constraint, $constraint);
 
         $target->$key = $_constraint->value;
     }
@@ -309,12 +316,12 @@ class Validator
                     children: $_constraint_->children
                 );
 
-                if (!empty($_constraint_->children) || !empty((array)$_constraint_->constraints)) {
-                    $constraint->children[] = $_constraint_;
-                }
+                self::setConstraint($_constraint_, $constraint->children);
 
             }
-        } else if (is_object($value) && !$each) {
+        }
+
+        if (!$each && is_object($value)) {
             _Object::assign($nestedObject, $value);
 
             self::validateObject(
@@ -411,5 +418,20 @@ class Validator
             }
             return $carry;
         }, []);
+    }
+
+    /**
+     * This method is used to add a ConstraintErrorModel to a target array if it contains any constraints or children.
+     * It checks if the constraints property of the ConstraintErrorModel is not empty or if it has any children.
+     * If either of these conditions is true, it adds the ConstraintErrorModel to the target array.
+     *
+     * @param ConstraintErrorModel $constraint The ConstraintErrorModel to check and potentially add to the target array.
+     * @param ConstraintErrorModel[] $target The target array to which the ConstraintErrorModel may be added.
+     */
+    private static function setConstraint(ConstraintErrorModel $constraint, array &$target): void
+    {
+        if (!empty((array)$constraint->constraints) || !empty($constraint->children)) {
+            $target[] = $constraint;
+        }
     }
 }
