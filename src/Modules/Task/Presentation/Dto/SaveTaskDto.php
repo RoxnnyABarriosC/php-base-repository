@@ -3,6 +3,12 @@
 namespace Modules\Task\Presentation\Dto;
 
 use Modules\Task\Domain\Enums\TaskStatusEnum;
+use Shared\App\Validator\Annotations\Array\ArrayContains;
+use Shared\App\Validator\Annotations\Array\ArrayMaxSize;
+use Shared\App\Validator\Annotations\Array\ArrayMinSize;
+use Shared\App\Validator\Annotations\Array\ArrayNotContains;
+use Shared\App\Validator\Annotations\Array\ArrayNotEmpty;
+use Shared\App\Validator\Annotations\Array\ArrayUnique;
 use Shared\App\Validator\Annotations\Common\Allow;
 use Shared\App\Validator\Annotations\Common\IsOptional;
 use Shared\App\Validator\Annotations\Common\Type;
@@ -63,6 +69,7 @@ class SaveTaskDto // extends DTO
         each: true
     )]
     #[IsArray()]
+    #[ArrayMaxSize(2)]
     public mixed $status = TaskStatusEnum::PENDING;
 
     #[IsObject(
@@ -76,10 +83,19 @@ class SaveTaskDto // extends DTO
     public mixed $meta;
 
 //    #[Allow]
-    #[IsDate(
+    #[IsArray(
         each: true,
 //        message: 'The value must be a boolean'
     )]
+    #[ArrayMaxSize(2, each: true)]
+//    #[ArrayMaxSize(2)]
+//    #[ArrayMinSize(1, each: true)]
+//    #[ArrayMinSize(1)]
+    #[ArrayNotEmpty]
+    #[ArrayNotEmpty(each: true)]
+    #[ArrayUnique]
+    #[ArrayUnique(each: true)]
+    #[ArrayNotContains(values: ['22-06-1976'], each: true)]
     public mixed $unknown;
 
 }
