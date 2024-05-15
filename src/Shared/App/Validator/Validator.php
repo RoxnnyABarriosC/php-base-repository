@@ -309,17 +309,13 @@ class Validator
                     children: $_constraint_->children
                 );
 
-                if (!empty($_constraint_->children) && !empty((array)$_constraint_->constraints)) {
+                if (!empty($_constraint_->children) || !empty((array)$_constraint_->constraints)) {
                     $constraint->children[] = $_constraint_;
                 }
 
             }
-        }
-
-        if (is_object($value)) {
+        } else if (is_object($value) && !$each) {
             _Object::assign($nestedObject, $value);
-
-            $constraint->children = [];
 
             self::validateObject(
                 properties: $properties,

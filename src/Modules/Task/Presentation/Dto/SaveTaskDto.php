@@ -67,8 +67,7 @@ class SaveTaskDto // extends DTO
     #[ValidateNested(
         each: true
     )]
-//    #[IsArray()]
-//    #[IsOptional()]
+    #[IsArray()]
     public mixed $meta;
 
     #[Allow]
