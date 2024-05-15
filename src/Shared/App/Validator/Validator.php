@@ -263,6 +263,7 @@ class Validator
     private static function validateNestedProperty(ReflectionProperty $property, mixed $value, object $object): MapConstraint
     {
         $target = $property->getAttributes(Type::class)[0]->newInstance()->target;
+        $each = $property->getAttributes(ValidateNested::class)[0]->newInstance()->each;
         $reflection = new ReflectionClass($target);
         $properties = $reflection->getProperties();
         $nestedTargetInstance = new $target();
@@ -270,27 +271,64 @@ class Validator
 
         $propertyConstraint = self::validateProperty($property, $value, $object);
         $constraint = $propertyConstraint->constraint;
+        $constraint->children = [];
 
         $data = new MapConstraint(
             value: is_object($value) ? $nestedTargetInstance : $value,
             constraint: $constraint
         );
 
-        if (!is_object($value)) {
+        if (!is_object($value) && !is_array($value)) {
             return $data;
         };
 
-        _Object::assign($nestedObject, $value);
+        if ($each && is_array($value)) {
+            foreach ($value as $index => $item) {
 
-        $constraint->children = [];
+                $_constraint_ = new ConstraintErrorModel(
+                    property: (string)$index,
+                    value: $item,
+                    constraints: (object)[],
+                    children: []
+                );
 
-        self::validateObject(
-            properties: $properties,
-            object: $nestedObject,
-            target: $nestedTargetInstance,
-            constraint: $constraint->children,
-            children: $constraint->children
-        );
+                if (!is_object($item)) {
+
+                    $_constraint_->constraints->nestedValidation = 'each value in nested property ' . $property->getName() . ' must be either object or array';
+                    $constraint->children[] = $_constraint_;
+                    continue;
+                }
+
+                _Object::assign($nestedObject, $item);
+
+                self::validateObject(
+                    properties: $properties,
+                    object: $nestedObject,
+                    target: $nestedTargetInstance,
+                    constraint: $_constraint_->children,
+                    children: $_constraint_->children
+                );
+
+                if (!empty($_constraint_->children) && !empty((array)$_constraint_->constraints)) {
+                    $constraint->children[] = $_constraint_;
+                }
+
+            }
+        }
+
+        if (is_object($value)) {
+            _Object::assign($nestedObject, $value);
+
+            $constraint->children = [];
+
+            self::validateObject(
+                properties: $properties,
+                object: $nestedObject,
+                target: $nestedTargetInstance,
+                constraint: $constraint->children,
+                children: $constraint->children
+            );
+        }
 
         return $data;
     }

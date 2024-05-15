@@ -24,17 +24,21 @@ class IsArray implements IValidateConstraint
         $value = $property->getValue($object);
 
         if ($this->each && is_array($value)) {
-            return !in_array(false, array_map(fn($item) => is_string($item), $value));
+            return !in_array(false, array_map(fn($item) => is_array($item), $value));
         }
 
-        return is_string($value);
+        if (!is_array($value)) {
+            return false;
+        }
+
+        return is_array($value);
     }
 
     public function defaultMessage(ReflectionProperty $property, object $object): string
     {
         if ($this->message) return $this->message;
 
-        $message = "Property {$property->getName()} must be a string";
+        $message = "Property {$property->getName()} must be a array";
 
         return $this->each ? "All values of " . $message : $message;
     }
