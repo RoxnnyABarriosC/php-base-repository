@@ -10,6 +10,9 @@ use Shared\App\Validator\Annotations\Array\ArrayNotContains;
 use Shared\App\Validator\Annotations\Array\ArrayNotEmpty;
 use Shared\App\Validator\Annotations\Array\ArrayUnique;
 use Shared\App\Validator\Annotations\Common\Allow;
+use Shared\App\Validator\Annotations\Common\IsDefined;
+use Shared\App\Validator\Annotations\Common\IsEmpty;
+use Shared\App\Validator\Annotations\Common\IsNotEmpty;
 use Shared\App\Validator\Annotations\Common\IsOptional;
 use Shared\App\Validator\Annotations\Common\Type;
 use Shared\App\Validator\Annotations\Common\ValidateNested;
@@ -83,19 +86,7 @@ class SaveTaskDto // extends DTO
     public mixed $meta;
 
 //    #[Allow]
-    #[IsArray(
-        each: true,
-//        message: 'The value must be a boolean'
-    )]
-    #[ArrayMaxSize(2, each: true)]
-//    #[ArrayMaxSize(2)]
-//    #[ArrayMinSize(1, each: true)]
-//    #[ArrayMinSize(1)]
-    #[ArrayNotEmpty]
-    #[ArrayNotEmpty(each: true)]
-    #[ArrayUnique]
-    #[ArrayUnique(each: true)]
-    #[ArrayNotContains(values: ['22-06-1976'], each: true)]
+    #[IsNotEmpty()]
     public mixed $unknown;
 
 }
