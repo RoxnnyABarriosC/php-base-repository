@@ -21,7 +21,7 @@ class Type
      * @param mixed $target The target type for validation.
      */
     public function __construct(
-        public mixed $target
+        public readonly mixed $target
     )
     {}
 }
