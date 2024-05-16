@@ -16,6 +16,10 @@ use Shared\App\Validator\Annotations\Common\IsNotEmpty;
 use Shared\App\Validator\Annotations\Common\IsOptional;
 use Shared\App\Validator\Annotations\Common\Type;
 use Shared\App\Validator\Annotations\Common\ValidateNested;
+use Shared\App\Validator\Annotations\Number\IsNegative;
+use Shared\App\Validator\Annotations\Number\IsPositive;
+use Shared\App\Validator\Annotations\Number\Max;
+use Shared\App\Validator\Annotations\Number\Min;
 use Shared\App\Validator\Annotations\TypeChecker\IsArray;
 use Shared\App\Validator\Annotations\TypeChecker\IsBoolean;
 use Shared\App\Validator\Annotations\TypeChecker\IsDate;
@@ -86,7 +90,10 @@ class SaveTaskDto // extends DTO
     public mixed $meta;
 
 //    #[Allow]
-    #[IsNotEmpty()]
+    #[IsNumber()]
+    #[IsPositive()]
+    #[Max(100)]
+    #[Min(50)]
     public mixed $unknown;
 
 }
