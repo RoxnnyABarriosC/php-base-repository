@@ -5,6 +5,7 @@ namespace Shared\App\Validator\Annotations\TypeChecker;
 use Attribute;
 use Exception;
 use ReflectionProperty;
+use Shared\App\Traits\Enum;
 use Shared\App\Validator\Interfaces\IValidateConstraint;
 use Shared\Utils\_Array;
 
@@ -42,10 +43,14 @@ class IsString implements IValidateConstraint
      */
     public function validate(ReflectionProperty $property, object $object): bool
     {
-        $value = Parse($property->getValue($object));
+        $value = $property->getValue($object);
+
+        if ($value instanceof Enum) {
+            $value = $value->value;
+        }
 
         if ($this->each && is_array($value)) {
-            return _Array::every($value, fn($item) => is_string(Parse($item)));
+            return _Array::every($value, fn($item) => is_string($item));
         }
 
         return is_string($value);
