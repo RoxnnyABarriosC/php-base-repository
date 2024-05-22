@@ -3,37 +3,28 @@
 namespace Modules\Task\Presentation\Dto;
 
 use Modules\Task\Domain\Enums\TaskStatusEnum;
-use Shared\App\Validator\Annotations\Array\ArrayContains;
-use Shared\App\Validator\Annotations\Array\ArrayMaxSize;
-use Shared\App\Validator\Annotations\Array\ArrayMinSize;
-use Shared\App\Validator\Annotations\Array\ArrayNotContains;
-use Shared\App\Validator\Annotations\Array\ArrayNotEmpty;
-use Shared\App\Validator\Annotations\Array\ArrayUnique;
-use Shared\App\Validator\Annotations\Common\Allow;
-use Shared\App\Validator\Annotations\Common\IsDefined;
-use Shared\App\Validator\Annotations\Common\IsEmpty;
-use Shared\App\Validator\Annotations\Common\IsNotEmpty;
 use Shared\App\Validator\Annotations\Common\IsOptional;
 use Shared\App\Validator\Annotations\Common\Type;
 use Shared\App\Validator\Annotations\Common\ValidateNested;
-use Shared\App\Validator\Annotations\Number\IsNegative;
-use Shared\App\Validator\Annotations\Number\IsPositive;
-use Shared\App\Validator\Annotations\Number\Max;
-use Shared\App\Validator\Annotations\Number\Min;
+use Shared\App\Validator\Annotations\String\IsLowercase;
+use Shared\App\Validator\Annotations\String\IsNumericString;
+use Shared\App\Validator\Annotations\String\IsUUID;
+use Shared\App\Validator\Annotations\Transforms\Sanitize;
+use Shared\App\Validator\Annotations\Transforms\ToLowerCase;
+use Shared\App\Validator\Annotations\Transforms\ToUpperCase;
+use Shared\App\Validator\Annotations\Transforms\Trim;
 use Shared\App\Validator\Annotations\TypeChecker\IsArray;
-use Shared\App\Validator\Annotations\TypeChecker\IsBoolean;
-use Shared\App\Validator\Annotations\TypeChecker\IsDate;
 use Shared\App\Validator\Annotations\TypeChecker\IsEnum;
-use Shared\App\Validator\Annotations\TypeChecker\IsInt;
-use Shared\App\Validator\Annotations\TypeChecker\IsNumber;
 use Shared\App\Validator\Annotations\TypeChecker\IsObject;
 use Shared\App\Validator\Annotations\TypeChecker\IsString;
+use Shared\App\Validator\Annotations\Transforms\Parse as _Parse;
 
 
 class Meta
 {
 
     #[IsString()]
+    #[ToUpperCase()]
     public $name;
 
     #[IsString()]
@@ -57,11 +48,18 @@ class Meta2
 }
 
 
+
 class SaveTaskDto // extends DTO
 {
 
 //    #[IsDefined()]
     #[IsString()]
+    #[IsLowercase]
+//    #[IsNumericString()]
+    #[Trim()]
+    #[_Parse()]
+    #[ToLowerCase()]
+    #[Sanitize()]
     public mixed $name;
 
     #[IsString()]
@@ -70,13 +68,14 @@ class SaveTaskDto // extends DTO
 
     #[IsEnum(
         enum: TaskStatusEnum::class,
-        each: true
+//        each: true
     )]
     #[IsString(
-        each: true
+//        each: true
     )]
-    #[IsArray()]
-    #[ArrayMaxSize(2)]
+//    #[IsArray()]
+//    #[ArrayMaxSize(2)]
+//    #[ArrayUnique]
     public mixed $status = TaskStatusEnum::PENDING;
 
     #[IsObject(
@@ -90,10 +89,12 @@ class SaveTaskDto // extends DTO
     public mixed $meta;
 
 //    #[Allow]
-    #[IsNumber()]
-    #[IsPositive()]
-    #[Max(100)]
-    #[Min(50)]
+//    #[IsNumber()]
+//    #[IsPositive()]
+//    #[Max(100)]
+//    #[Min(50)]
+//    #[IsUrl]
+    #[IsUUID(4)]
     public mixed $unknown;
 
 }

@@ -10,7 +10,6 @@ use Shared\App\Router\Enums\HttpStatus;
 use Shared\App\Router\Router;
 use Shared\App\Validator\ConstraintErrorModel;
 use Shared\App\Validator\Validator;
-use Shared\App\Validator\Validator1;
 
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
@@ -62,8 +61,7 @@ Validator::build(
     mapError: $mapErrors(...)
 );
 
-Validator1::setLang('es');
-Validator1::setLangDir(__DIR__ . '/Config/Locales');
+
 Router::build(
     basePath: '/api',
     caseMatters: true,

@@ -4,7 +4,7 @@
 /**
  * @throws Exception
  */
-function Parse($value)
+function parse($value)
 {
     // Intenta decodificar como JSON
 
@@ -26,25 +26,4 @@ function Parse($value)
         }
     }
     return $value;
-}
-
-function Sanitize(string $value): string
-{
-    return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
-}
-
-
-function ToUpperCase(string $value): string
-{
-    return strtoupper($value);
-}
-
-function ToLowerCase(string $value): string
-{
-    return strtolower($value);
-}
-
-function CleanSpaces(string $value): string
-{
-    return trim($value);
 }
