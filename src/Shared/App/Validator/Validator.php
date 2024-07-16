@@ -92,8 +92,6 @@ class Validator
 
         $object = Transform::transform($object, $target);
 
-        echo json_encode($object) . PHP_EOL;
-
         self::validateObject(
             properties: $properties,
             object: $object,

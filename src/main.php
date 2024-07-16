@@ -61,7 +61,6 @@ Validator::build(
     mapError: $mapErrors(...)
 );
 
-
 Router::build(
     basePath: '/api',
     caseMatters: true,

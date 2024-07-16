@@ -25,6 +25,7 @@ class Meta
 
     #[IsString()]
     #[ToUpperCase()]
+    #[Trim()]
     public $name;
 
     #[IsString()]
