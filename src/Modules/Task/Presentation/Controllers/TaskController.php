@@ -47,14 +47,11 @@ class TaskController
     #[Get(':id')]
     public function get(
         #[Param('id')] $id,
-        #[Body()] $body,
-        #[Query('filter.search')] $queries
-    ): void
+    )
     {
-        echo json_encode($id) . PHP_EOL;
-        echo json_encode($body) . PHP_EOL;
-        echo json_encode($queries) . PHP_EOL;
-//        $data = GetExampleUseCase::handle($id);
+        $data = GetExampleUseCase::handle($id);
+
+        return $data;
 
 //        Response($data);
     }

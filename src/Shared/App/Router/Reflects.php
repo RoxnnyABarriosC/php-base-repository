@@ -1,7 +1,10 @@
 <?php
 
+use Shared\App\Router\Annotations\Body;
 use Shared\App\Router\Annotations\Controller;
 use Shared\App\Router\Annotations\Module;
+use Shared\App\Router\Annotations\Param;
+use Shared\App\Router\Annotations\Query;
 use Shared\App\Router\Annotations\Route;
 use Shared\App\Router\Annotations\UseMiddleware;
 use Shared\App\Router\Enums\HttpVerbs;
@@ -108,4 +111,35 @@ function LoadControllers(mixed $module): array
     });
 
     return $routes;
+}
+
+
+/**
+ * @throws ReflectionException
+ */
+function getParamsToControllerMethod(callable $method, object $pathParams, object $queryParams, object $body): array
+{
+    $reflectorFunction = new ReflectionFunction($method);
+
+    $params = array_fill(0, $reflectorFunction->getNumberOfParameters(), null);
+
+    foreach ($reflectorFunction->getParameters() as $key => $param) {
+        $atributes = $param->getAttributes();
+
+        foreach ($atributes as $atribute) {
+            if ($atribute->getName() === Body::class) {
+                $params[$key] = ($atribute->newInstance())->handle($body);
+            }
+
+            if ($atribute->getName() === Param::class) {
+                $params[$key] = ($atribute->newInstance())->handle($pathParams);
+            }
+
+            if ($atribute->getName() === Query::class) {
+                $params[$key] = ($atribute->newInstance())->handle($queryParams);
+            }
+        }
+    }
+
+    return $params;
 }

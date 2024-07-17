@@ -2,10 +2,7 @@
 
 namespace Shared\App\Router;
 
-use ReflectionFunction;
-use Shared\App\Router\Annotations\Body;
 use Shared\App\Router\Annotations\Param;
-use Shared\App\Router\Annotations\Query;
 use Shared\App\Router\Enums\HttpStatus;
 use Shared\App\Router\Exceptions\HttpException;
 use Shared\App\Router\Traits\Route;
@@ -68,7 +65,7 @@ class Router
      * @param bool $trailingSlashMatters Whether trailing slashes should be considered in route matching
      * @param bool $multiMatch Whether multiple routes should be matched
      */
-    public static function build(string $basePath = '', bool $caseMatters = false, bool $trailingSlashMatters = false, bool $multiMatch = false): void
+    public static function build(string $basePath = '', bool $caseMatters = false, bool $trailingSlashMatters = false, bool $multiMatch = false)
     {
         $basePath = AddTrailingSlash(rtrim($basePath, '/'), true);
         $parsed_url = parse_url($_SERVER['REQUEST_URI']);
@@ -90,31 +87,15 @@ class Router
 
                 if (in_array($method, (array)$route['method'], true)) {
 
-                    $reflectorFunction = new ReflectionFunction($route['function']);
-
-                    $params = array_fill(0, $reflectorFunction->getNumberOfParameters(), null);
-
                     $pathParams = getPathParams($basePath, $originalPath, $path);
+                    $queryParams = json_decode(json_encode($_GET, JSON_FORCE_OBJECT));
+                    $body = json_decode(file_get_contents('php://input'));
 
-                    foreach ($reflectorFunction->getParameters() as $key => $param) {
-                        $atributes = $param->getAttributes();
-
-                        foreach ($atributes as $atribute) {
-                            if ($atribute->getName() === Body::class) {
-                                $params[$key] = ($atribute->newInstance())->handle(BODY);
-                            }
-
-                            if ($atribute->getName() === Param::class) {
-                                $params[$key] = ($atribute->newInstance())->handle($pathParams);
-                            }
-
-                            if ($atribute->getName() === Query::class) {
-                                $params[$key] = ($atribute->newInstance())->handle(QUERY);
-                            }
-                        }
+                    if (!is_object($body)) {
+                        throw new HttpException(HttpStatus::BAD_REQUEST, 'Invalid request body', 'INVALID_REQUEST_BODY');
                     }
 
-                    echo call_user_func_array($route['function'], array_slice($params, 0)) ?: '';
+                    echo call_user_func_array($route['function'], array_slice(getParamsToControllerMethod($route['function'], $pathParams, $queryParams, $body), 0)) ?: '';
                     $routeMatchFound = true;
                 }
 
@@ -131,9 +112,3 @@ class Router
     }
 }
 
-define("BODY", json_decode(file_get_contents('php://input')) ?? []);
-define("QUERY", json_decode(json_encode($_GET, JSON_FORCE_OBJECT)));
-
-if (!is_object(BODY)) {
-    throw new HttpException(HttpStatus::BAD_REQUEST, 'Invalid request body', 'INVALID_REQUEST_BODY');
-}

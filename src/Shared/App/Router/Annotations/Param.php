@@ -12,8 +12,7 @@ class Param
     public function __construct(
         public ?string $path = null,
     )
-    {
-    }
+    { }
 
     public function handle(object $object): mixed
     {
