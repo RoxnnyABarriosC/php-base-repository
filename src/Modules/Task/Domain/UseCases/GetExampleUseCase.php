@@ -3,6 +3,7 @@
 namespace Modules\Task\Domain\UseCases;
 
 use Modules\Task\Domain\Entities\Task;
+use Modules\Task\Domain\Enums\TaskStatusEnum;
 
 class GetExampleUseCase
 {
@@ -12,7 +13,7 @@ class GetExampleUseCase
         return new Task(
             name: 'Task',
             description: 'Description',
-            isActivated: true
+            status: TaskStatusEnum::IN_PROGRESS
         );
     }
 }

@@ -2,6 +2,10 @@
 
 namespace Shared\App\Router;
 
+use ReflectionFunction;
+use Shared\App\Router\Annotations\Body;
+use Shared\App\Router\Annotations\Param;
+use Shared\App\Router\Annotations\Query;
 use Shared\App\Router\Enums\HttpStatus;
 use Shared\App\Router\Exceptions\HttpException;
 use Shared\App\Router\Traits\Route;
@@ -76,13 +80,41 @@ class Router
         $routeMatchFound = false;
 
         foreach (self::$routes as $route) {
+
+            $originalPath =  $route['path'];
+
             $route['path'] = '^(' . $basePath . ')' . self::processRoute($route['path']) . '$';
 
             if (preg_match('#' . $route['path'] . '#' . ($caseMatters ? '' : 'i') . 'u', $path, $matches)) {
                 $pathMatchFound = true;
 
                 if (in_array($method, (array)$route['method'], true)) {
-                    echo call_user_func_array($route['function'], array_slice($matches, $basePath == '' || $basePath == '/' ? 1 : 2)) ?: '';
+
+                    $reflectorFunction = new ReflectionFunction($route['function']);
+
+                    $params = array_fill(0, $reflectorFunction->getNumberOfParameters(), null);
+
+                    $pathParams = getPathParams($basePath, $originalPath, $path);
+
+                    foreach ($reflectorFunction->getParameters() as $key => $param) {
+                        $atributes = $param->getAttributes();
+
+                        foreach ($atributes as $atribute) {
+                            if ($atribute->getName() === Body::class) {
+                                $params[$key] = ($atribute->newInstance())->handle(BODY);
+                            }
+
+                            if ($atribute->getName() === Param::class) {
+                                $params[$key] = ($atribute->newInstance())->handle($pathParams);
+                            }
+
+                            if ($atribute->getName() === Query::class) {
+                                $params[$key] = ($atribute->newInstance())->handle(QUERY);
+                            }
+                        }
+                    }
+
+                    echo call_user_func_array($route['function'], array_slice($params, 0)) ?: '';
                     $routeMatchFound = true;
                 }
 
@@ -99,10 +131,9 @@ class Router
     }
 }
 
-
 define("BODY", json_decode(file_get_contents('php://input')) ?? []);
-define("QUERY", $_GET);
+define("QUERY", json_decode(json_encode($_GET, JSON_FORCE_OBJECT)));
 
 if (!is_object(BODY)) {
-    throw new HttpException(HttpStatus::BAD_REQUEST,'Invalid request body', 'INVALID_REQUEST_BODY');
+    throw new HttpException(HttpStatus::BAD_REQUEST, 'Invalid request body', 'INVALID_REQUEST_BODY');
 }

@@ -7,8 +7,7 @@ use Shared\App\Validator\Annotations\Common\IsOptional;
 use Shared\App\Validator\Annotations\Common\Type;
 use Shared\App\Validator\Annotations\Common\ValidateNested;
 use Shared\App\Validator\Annotations\String\IsLowercase;
-use Shared\App\Validator\Annotations\String\IsNumericString;
-use Shared\App\Validator\Annotations\String\IsUUID;
+use Shared\App\Validator\Annotations\Transforms\Parse as _Parse;
 use Shared\App\Validator\Annotations\Transforms\Sanitize;
 use Shared\App\Validator\Annotations\Transforms\ToLowerCase;
 use Shared\App\Validator\Annotations\Transforms\ToUpperCase;
@@ -17,7 +16,6 @@ use Shared\App\Validator\Annotations\TypeChecker\IsArray;
 use Shared\App\Validator\Annotations\TypeChecker\IsEnum;
 use Shared\App\Validator\Annotations\TypeChecker\IsObject;
 use Shared\App\Validator\Annotations\TypeChecker\IsString;
-use Shared\App\Validator\Annotations\Transforms\Parse as _Parse;
 
 
 class Meta
@@ -47,7 +45,6 @@ class Meta2
     #[IsString()]
     public $description;
 }
-
 
 
 class SaveTaskDto // extends DTO
@@ -95,7 +92,11 @@ class SaveTaskDto // extends DTO
 //    #[Max(100)]
 //    #[Min(50)]
 //    #[IsUrl]
-    #[IsUUID(4)]
+//    #[IsUUID(4)]
+
+    #[IsObject()]
+    #[Type(Meta::class)]
+    #[ValidateNested()]
     public mixed $unknown;
 
 }

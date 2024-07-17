@@ -7,7 +7,7 @@ use Shared\App\Traits\Sanitize;
 use Respect\Validation\Validator as v;
 use Respect\Validation\ChainedValidator;
 use Shared\App\Validator\Exceptions\LocaleException;
-use Shared\App\Validator\Validator1;
+use Shared\App\Validator\Validator;
 
 abstract class DTO
 {
@@ -20,7 +20,7 @@ abstract class DTO
     {
         $data = (new static())->sanitize($data);
 
-        Validator1::validate($data);
+        Validator::validate($data);
 
         return $data;
     }

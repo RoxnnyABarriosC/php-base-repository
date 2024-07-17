@@ -9,7 +9,7 @@ class Task extends Entity
 {
     public string $name;
     public ?string $description;
-    public TaskStatusEnum|string|array $status;
+    public TaskStatusEnum|string $status;
 
     public function __construct(...$args)
     {

@@ -3,13 +3,17 @@
 namespace Modules\Task\Presentation\Controllers;
 
 use JetBrains\PhpStorm\NoReturn;
+use Modules\Task\Domain\UseCases\GetExampleUseCase;
 use Modules\Task\Domain\UseCases\SaveExampleUseCase;
 use Modules\Task\Presentation\Criterias\TaskFilter;
 use Modules\Task\Presentation\Criterias\TaskSort;
 use Modules\Task\Presentation\Dto\SaveTaskDto;
+use Shared\App\Router\Annotations\Body;
 use Shared\App\Router\Annotations\Controller;
 use Shared\App\Router\Annotations\Get;
+use Shared\App\Router\Annotations\Param;
 use Shared\App\Router\Annotations\Post;
+use Shared\App\Router\Annotations\Query;
 use Shared\App\Router\Enums\HttpStatus;
 use Shared\App\Validator\Exceptions\LocaleException;
 use Shared\App\Validator\Validator;
@@ -28,25 +32,32 @@ class TaskController
      */
     #[NoReturn]
     #[Post()]
-    public function save(): void
+    public function save(
+        #[Body()] $body,
+        #[Body('meta.[1].nestedMeta.name')] $body2
+    ): void
     {
-        $dto = Validator::validate(BODY, SaveTaskDto::class);
+        var_dump($body2);
+        $dto = Validator::validate($body, SaveTaskDto::class);
 
-//        var_dump($dto);
-
-//        $data = SaveExampleUseCase::handle($dto);
-//
         Response($dto, HttpStatus::CREATED);
     }
 
-//    #[NoReturn]
-//    #[Get(':id')]
-//    public function get(string $id): void
-//    {
+    #[NoReturn]
+    #[Get(':id')]
+    public function get(
+        #[Param('id')] $id,
+        #[Body()] $body,
+        #[Query('filter.search')] $queries
+    ): void
+    {
+        echo json_encode($id) . PHP_EOL;
+        echo json_encode($body) . PHP_EOL;
+        echo json_encode($queries) . PHP_EOL;
 //        $data = GetExampleUseCase::handle($id);
-//
+
 //        Response($data);
-//    }
+    }
 
 //    #[NoReturn]
 //    #[Get]

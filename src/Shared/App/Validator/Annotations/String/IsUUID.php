@@ -6,6 +6,7 @@ use Attribute;
 use Ramsey\Uuid\Uuid;
 use ReflectionProperty;
 use Shared\App\Validator\Interfaces\IValidateConstraint;
+use Shared\Utils\_Array;
 
 /**
  * Class IsUUID
@@ -76,7 +77,7 @@ class IsUUID implements IValidateConstraint
      * @param int $version The version of the UUID to validate.
      * @return bool Returns true if the value is a valid UUID of the specified version.
      */
-    public static function isValid(string $value, int $version): bool
+    public static function isValid(mixed $value, int $version): bool
     {
         return is_string($value) && Uuid::isValid($value) && Uuid::fromString($value)->getFields()->getVersion() === $version;
     }

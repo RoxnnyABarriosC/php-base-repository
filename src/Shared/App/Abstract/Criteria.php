@@ -5,7 +5,7 @@ namespace Shared\App\Abstract;
 
 use Shared\App\Traits\Util;
 
-abstract class Criteria extends DTO
+abstract class Criteria
 {
     use Util;
 }
