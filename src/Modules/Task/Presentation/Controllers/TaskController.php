@@ -8,6 +8,7 @@ use Modules\Task\Domain\UseCases\SaveTaskUseCase;
 use Modules\Task\Presentation\Criterias\TaskFilter;
 use Modules\Task\Presentation\Criterias\TaskSort;
 use Modules\Task\Presentation\Dto\SaveTaskDto;
+use ReflectionException;
 use Shared\App\Router\Annotations\Body;
 use Shared\App\Router\Annotations\Controller;
 use Shared\App\Router\Annotations\Get;
@@ -15,7 +16,7 @@ use Shared\App\Router\Annotations\Param;
 use Shared\App\Router\Annotations\Post;
 use Shared\App\Router\Enums\HttpStatus;
 use Shared\App\Validator\Exceptions\LocaleException;
-use Shared\App\Validator\Validator;
+use Shared\App\Validator\Exceptions\ValidationErrorException;
 use Shared\Criterias\Annotations\Criteria;
 use Shared\Criterias\Criteria as C;
 use Shared\Criterias\PaginationFilter;
@@ -33,11 +34,9 @@ class TaskController
     #[NoReturn]
     #[Post()]
     public function save(
-        #[Body()] $body,
+        #[Body()] SaveTaskDto $dto,
     ): void
     {
-        $dto = Validator::validate($body, SaveTaskDto::class);
-
         $data = SaveTaskUseCase::handle($dto);
 
         Response($data, HttpStatus::CREATED);
@@ -54,10 +53,14 @@ class TaskController
         Response($data);
     }
 
+    /**
+     * @throws ReflectionException
+     * @throws ValidationErrorException
+     */
     #[NoReturn]
     #[Get]
     public function list(
-        #[Criteria()] $criteria,
+          #[Criteria()] $criteria
     ): void
     {
 

@@ -66,7 +66,7 @@ class Router
      * @param bool $trailingSlashMatters Whether trailing slashes should be considered in route matching
      * @param bool $multiMatch Whether multiple routes should be matched
      */
-    public static function build(string $basePath = '', bool $caseMatters = false, bool $trailingSlashMatters = false, bool $multiMatch = false)
+    public static function build(string $basePath = '', bool $caseMatters = false, bool $trailingSlashMatters = false, bool $multiMatch = false, bool $enableTypeValidation = false, callable $validator = null)
     {
         $basePath = AddTrailingSlash(rtrim($basePath, '/'), true);
         $parsed_url = parse_url($_SERVER['REQUEST_URI']);
@@ -79,7 +79,7 @@ class Router
 
         foreach (self::$routes as $route) {
 
-            $originalPath =  $route['path'];
+            $originalPath = $route['path'];
 
             $route['path'] = '^(' . $basePath . ')' . self::processRoute($route['path']) . '$';
 
@@ -92,11 +92,19 @@ class Router
                     $queryParams = json_decode(json_encode($_GET, JSON_FORCE_OBJECT));
                     $body = json_decode(file_get_contents('php://input'));
 
-                    if (!is_object($body) && in_array($method, [HttpVerbs::POST->value, HttpVerbs::PUT->value, HttpVerbs::PATCH->value]) ) {
+                    if (!is_object($body) && in_array($method, [HttpVerbs::POST->value, HttpVerbs::PUT->value, HttpVerbs::PATCH->value])) {
                         throw new HttpException(HttpStatus::BAD_REQUEST, 'Invalid request body', 'INVALID_REQUEST_BODY');
                     }
 
-                    echo call_user_func_array($route['function'], array_slice(getParamsToControllerMethod($route['function'], $pathParams, $queryParams, $body), 0)) ?: '';
+                    echo call_user_func_array($route['function'], array_slice(getParamsToControllerMethod(
+                        method: $route['function'],
+                        pathParams: $pathParams,
+                        queryParams: $queryParams,
+                        body: $body,
+                        enableTypeValidation: $enableTypeValidation,
+                        validator: $validator
+                    ), 0)) ?: '';
+
                     $routeMatchFound = true;
                 }
 

@@ -1,5 +1,6 @@
 <?php
 
+use Modules\Task\Presentation\Dto\SaveTaskDto;
 use Shared\App\Router\Annotations\Body;
 use Shared\App\Router\Annotations\Controller;
 use Shared\App\Router\Annotations\Module;
@@ -8,6 +9,8 @@ use Shared\App\Router\Annotations\Query;
 use Shared\App\Router\Annotations\Route;
 use Shared\App\Router\Annotations\UseMiddleware;
 use Shared\App\Router\Enums\HttpVerbs;
+use Shared\App\Validator\Exceptions\ValidationErrorException;
+use Shared\App\Validator\Validator;
 
 /**
  * Add a trailing slash to a given path.
@@ -116,8 +119,9 @@ function LoadControllers(mixed $module): array
 
 /**
  * @throws ReflectionException
+ * @throws ValidationErrorException
  */
-function getParamsToControllerMethod(callable $method, ?object $pathParams, ?object $queryParams, ?object $body): array
+function getParamsToControllerMethod(callable $method, ?object $pathParams, ?object $queryParams, ?object $body, bool $enableTypeValidation = false, callable $validator = null): array
 {
     $reflectorFunction = new ReflectionFunction($method);
 
@@ -129,13 +133,22 @@ function getParamsToControllerMethod(callable $method, ?object $pathParams, ?obj
         Query::class => $queryParams
     ];
 
+
     foreach ($reflectorFunction->getParameters() as $key => $param) {
 
         foreach ([Body::class, Param::class, Query::class] as $annotation) {
             $atributes = $param->getAttributes($annotation, ReflectionAttribute::IS_INSTANCEOF);
 
             foreach ($atributes as $atribute) {
-                $params[$key] = ($atribute->newInstance())->handle($targetObjets[$annotation]);
+
+                $value = ($atribute->newInstance())->handle($targetObjets[$annotation]);
+
+                if($param->hasType() && $enableTypeValidation && !is_null($validator))
+                {
+                    $value = $validator($value, $param->getType()->getName());
+                }
+
+                $params[$key] = $value;
             }
         }
     }

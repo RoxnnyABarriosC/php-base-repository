@@ -36,5 +36,7 @@ Validator::build(
 Router::build(
     basePath: '/api',
     caseMatters: true,
-    trailingSlashMatters: true
+    trailingSlashMatters: true,
+    enableTypeValidation: true,
+    validator: Validator::validate(...)
 );
