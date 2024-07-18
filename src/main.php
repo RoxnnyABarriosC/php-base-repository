@@ -25,8 +25,6 @@ Router::methodNotAllowed($notFound);
 
 Router::registerModules(TaskModule::class);
 
-//echo json_encode(Router::getAll());//
-
 Validator::build(
     whiteList: true,
     forbidNonWhitelisted: true,

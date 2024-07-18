@@ -83,7 +83,7 @@ class Router
 
             $route['path'] = '^(' . $basePath . ')' . self::processRoute($route['path']) . '$';
 
-            if (preg_match('#' . $route['path'] . '#' . ($caseMatters ? '' : 'i') . 'u', $path, $matches)) {
+            if (preg_match('#' . $route['path'] . '#' . ($caseMatters ? '' : 'i') . 'u', $path)) {
                 $pathMatchFound = true;
 
                 if (in_array($method, (array)$route['method'], true)) {

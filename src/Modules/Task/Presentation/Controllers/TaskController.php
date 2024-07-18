@@ -21,7 +21,6 @@ use Shared\Criterias\Annotations\Criteria;
 use Shared\Criterias\Criteria as C;
 use Shared\Criterias\PaginationFilter;
 
-
 #[Controller(
     path: 'tasks',
     version: 'v1'
@@ -60,7 +59,7 @@ class TaskController
     #[NoReturn]
     #[Get]
     public function list(
-          #[Criteria()] $criteria
+        #[Criteria()] $criteria
     ): void
     {
 
