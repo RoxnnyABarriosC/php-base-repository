@@ -3,48 +3,49 @@
 
 namespace Shared\Criterias;
 
-use Respect\Validation\ChainedValidator;
-use Respect\Validation\Validator as v;
+use ReflectionException;
 use Shared\App\Abstract\Criteria as C;
+use Shared\App\Validator\Annotations\Common\IsOptional;
+use Shared\App\Validator\Annotations\Common\Type;
+use Shared\App\Validator\Annotations\Common\ValidateNested;
+use Shared\App\Validator\Annotations\TypeChecker\IsObject;
+use Shared\App\Validator\Exceptions\ValidationErrorException;
+use Shared\App\Validator\Validator;
 
 
 class Criteria
 {
-    static function build($filter, $sort, $pagination): C
+    /**
+     * @throws ReflectionException
+     * @throws ValidationErrorException
+     */
+    static function build($criteria, $filter, $sort, $pagination): C
     {
         define('FILTER', $filter);
         define('SORT', $sort);
         define('PAGINATION', $pagination);
 
-        return new class extends C {
+        $dto = new class extends C {
+
+            #[IsOptional()]
+            #[IsObject()]
+            #[Type(FILTER)]
+            #[ValidateNested()]
             public $filter;
+
+            #[IsOptional()]
+            #[IsObject()]
+            #[Type(SORT)]
+            #[ValidateNested()]
             public $sort;
+
+            #[IsOptional()]
+            #[IsObject()]
+            #[Type(PAGINATION)]
+            #[ValidateNested()]
             public $pagination;
-
-            public static function schema(): v|ChainedValidator
-            {
-                $f = new (FILTER)();
-                $s = new (SORT)();
-                $p = new (PAGINATION)();
-
-//                return v::attribute('filter', $f::schema());
-//                    ->attribute('sort', v::optional($s::schema()))
-//                    ->attribute('pagination', v::optional($p::schema()));
-
-                return
-                    v::attribute('filter', $f::schema());
-//                        ->attribute('sort', $s::schema())
-//                        ->attribute('pagination', $p::schema())
-            }
-
-            public function nestedProperties(): array
-            {
-                return [
-                    'filter' => FILTER,
-                    'sort' => SORT,
-                    'pagination' => PAGINATION
-                ];
-            }
         };
+
+        return Validator::validate($criteria, $dto);
     }
 }

@@ -4,7 +4,6 @@ use Ramsey\Uuid\Uuid;
 use JetBrains\PhpStorm\NoReturn;
 use Shared\App\Router\Enums\HttpStatus;
 use Shared\App\Router\Exceptions\HttpException;
-use Respect\Validation\Exceptions\NestedValidationException;
 use Shared\App\Validator\Exceptions\ValidationErrorException;
 
 DEFINE('CORRELATION_ID', Uuid::uuid4()->toString());
@@ -54,18 +53,6 @@ function Response(mixed $data, HttpStatus $statusCode = HttpStatus::OK, array $p
     exit;
 }
 
-/**
- * Maps the errors from a NestedValidationException to an array.
- *
- * @param NestedValidationException $exception The exception to map the errors from.
- * @return array The mapped errors.
- */
-function MapErrors(NestedValidationException $exception): array
-{
-    return array_map(function ($field, $message) {
-        return ['field' => $field, 'message' => $message];
-    }, array_keys($exception->getMessages()), $exception->getMessages());
-}
 
 /**
  * Handles exceptions by sending a JSON response with the exception details.

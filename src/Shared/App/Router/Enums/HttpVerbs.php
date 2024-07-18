@@ -2,6 +2,8 @@
 
 namespace Shared\App\Router\Enums;
 
+use Shared\App\Traits\Enum;
+
 /**
  * Class HttpVerbs
  *
@@ -10,6 +12,7 @@ namespace Shared\App\Router\Enums;
  */
 enum HttpVerbs: string
 {
+    use Enum;
     /**
      * Constant for the HTTP GET method.
      */

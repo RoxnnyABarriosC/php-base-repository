@@ -117,26 +117,25 @@ function LoadControllers(mixed $module): array
 /**
  * @throws ReflectionException
  */
-function getParamsToControllerMethod(callable $method, object $pathParams, object $queryParams, object $body): array
+function getParamsToControllerMethod(callable $method, ?object $pathParams, ?object $queryParams, ?object $body): array
 {
     $reflectorFunction = new ReflectionFunction($method);
 
     $params = array_fill(0, $reflectorFunction->getNumberOfParameters(), null);
 
+    $targetObjets = [
+        Body::class => $body,
+        Param::class => $pathParams,
+        Query::class => $queryParams
+    ];
+
     foreach ($reflectorFunction->getParameters() as $key => $param) {
-        $atributes = $param->getAttributes();
 
-        foreach ($atributes as $atribute) {
-            if ($atribute->getName() === Body::class) {
-                $params[$key] = ($atribute->newInstance())->handle($body);
-            }
+        foreach ([Body::class, Param::class, Query::class] as $annotation) {
+            $atributes = $param->getAttributes($annotation, ReflectionAttribute::IS_INSTANCEOF);
 
-            if ($atribute->getName() === Param::class) {
-                $params[$key] = ($atribute->newInstance())->handle($pathParams);
-            }
-
-            if ($atribute->getName() === Query::class) {
-                $params[$key] = ($atribute->newInstance())->handle($queryParams);
+            foreach ($atributes as $atribute) {
+                $params[$key] = ($atribute->newInstance())->handle($targetObjets[$annotation]);
             }
         }
     }

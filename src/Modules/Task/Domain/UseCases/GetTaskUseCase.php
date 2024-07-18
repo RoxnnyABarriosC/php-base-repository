@@ -5,7 +5,7 @@ namespace Modules\Task\Domain\UseCases;
 use Modules\Task\Domain\Entities\Task;
 use Modules\Task\Domain\Enums\TaskStatusEnum;
 
-class GetExampleUseCase
+class GetTaskUseCase
 {
 
     public static function handle(string $id): Task

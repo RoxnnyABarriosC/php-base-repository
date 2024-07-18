@@ -1,5 +1,32 @@
 <?php
 
+use Shared\App\Validator\ConstraintErrorModel;
+
+function mapErrors(array $errors): array
+{
+    $errorModel = function (ConstraintErrorModel $error) use (&$errorModel) {
+        $newError = new stdClass();
+        $newError->property = $error->property;
+
+        if (!empty((array)$error->constraints)) {
+            $newError->constraints = $error->constraints;
+        }
+
+        if (!empty($error->children)) {
+            $newError->children = [];
+
+            foreach ($error->children as $children) {
+                $newError->children[] = $errorModel($children);
+            }
+        }
+
+        return $newError;
+    };
+
+    return array_map($errorModel, $errors);
+}
+
+
 function getPathParams(string $basePath, string $routePath, string $path): object
 {
     $originalPath = '^(' . $basePath . ')' . $routePath . '$';

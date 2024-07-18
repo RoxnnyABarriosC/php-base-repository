@@ -3,8 +3,8 @@
 namespace Modules\Task\Presentation\Controllers;
 
 use JetBrains\PhpStorm\NoReturn;
-use Modules\Task\Domain\UseCases\GetExampleUseCase;
-use Modules\Task\Domain\UseCases\SaveExampleUseCase;
+use Modules\Task\Domain\UseCases\GetTaskUseCase;
+use Modules\Task\Domain\UseCases\SaveTaskUseCase;
 use Modules\Task\Presentation\Criterias\TaskFilter;
 use Modules\Task\Presentation\Criterias\TaskSort;
 use Modules\Task\Presentation\Dto\SaveTaskDto;
@@ -13,13 +13,13 @@ use Shared\App\Router\Annotations\Controller;
 use Shared\App\Router\Annotations\Get;
 use Shared\App\Router\Annotations\Param;
 use Shared\App\Router\Annotations\Post;
-use Shared\App\Router\Annotations\Query;
 use Shared\App\Router\Enums\HttpStatus;
 use Shared\App\Validator\Exceptions\LocaleException;
 use Shared\App\Validator\Validator;
-use Shared\App\Validator\Validator1;
-use Shared\Criterias\Criteria;
+use Shared\Criterias\Annotations\Criteria;
+use Shared\Criterias\Criteria as C;
 use Shared\Criterias\PaginationFilter;
+
 
 #[Controller(
     path: 'tasks',
@@ -34,43 +34,41 @@ class TaskController
     #[Post()]
     public function save(
         #[Body()] $body,
-        #[Body('meta.[1].nestedMeta.name')] $body2
     ): void
     {
-        var_dump($body2);
         $dto = Validator::validate($body, SaveTaskDto::class);
 
-        Response($dto, HttpStatus::CREATED);
+        $data = SaveTaskUseCase::handle($dto);
+
+        Response($data, HttpStatus::CREATED);
     }
 
     #[NoReturn]
     #[Get(':id')]
     public function get(
         #[Param('id')] $id,
-    )
+    ): void
     {
-        $data = GetExampleUseCase::handle($id);
+        $data = GetTaskUseCase::handle($id);
 
-        return $data;
-
-//        Response($data);
+        Response($data);
     }
 
-//    #[NoReturn]
-//    #[Get]
-//    public function list(): void
-//    {
-//
-//        $criteria = Criteria::build(
-//            filter: TaskFilter::class,
-//            sort: TaskSort::class,
-//            pagination: PaginationFilter::class
-//        )->validate(QUERY);
-//
-////        var_dump($criteria->nestedProperties());
-////        var_dump($criteria);
-//
-//        Response($criteria);
-//    }
+    #[NoReturn]
+    #[Get]
+    public function list(
+        #[Criteria()] $criteria,
+    ): void
+    {
+
+        $criteria = C::build(
+            $criteria,
+            filter: TaskFilter::class,
+            sort: TaskSort::class,
+            pagination: PaginationFilter::class
+        );
+
+        Response($criteria);
+    }
 
 }

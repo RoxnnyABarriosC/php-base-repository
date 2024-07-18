@@ -427,12 +427,12 @@ class Validator
      * It checks if the constraints property of the ConstraintErrorModel is not empty or if it has any children.
      * If either of these conditions is true, it adds the ConstraintErrorModel to the target array.
      *
-     * @param ConstraintErrorModel $constraint The ConstraintErrorModel to check and potentially add to the target array.
+     * @param ?ConstraintErrorModel $constraint The ConstraintErrorModel to check and potentially add to the target array.
      * @param ConstraintErrorModel[] $target The target array to which the ConstraintErrorModel may be added.
      */
-    private static function setConstraint(ConstraintErrorModel $constraint, array &$target): void
+    private static function setConstraint(?ConstraintErrorModel $constraint, array &$target): void
     {
-        if (!empty((array)$constraint->constraints) || !empty($constraint->children)) {
+        if (!empty((array)$constraint?->constraints) || !empty($constraint?->children)) {
             $target[] = $constraint;
         }
     }

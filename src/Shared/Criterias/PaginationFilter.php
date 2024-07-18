@@ -2,31 +2,20 @@
 
 namespace Shared\Criterias;
 
-use Respect\Validation\ChainedValidator;
-use Respect\Validation\Validator as v;
-use Shared\App\Abstract\DTO;
+use Shared\App\Validator\Annotations\Common\IsOptional;
+use Shared\App\Validator\Annotations\Transforms\Parse;
+use Shared\App\Validator\Annotations\TypeChecker\IsNumber;
 
-class PaginationFilter extends DTO
+class PaginationFilter
 {
+
+    #[IsOptional()]
+    #[IsNumber()]
+    #[Parse()]
     public int|string $offset = 0;
+
+    #[IsOptional()]
+    #[IsNumber()]
+    #[Parse()]
     public int|string $limit = 10;
-
-    public static function schema(): v|ChainedValidator
-    {
-//        return v::Attribute('offset', v::Optional(v::intType()->number()))
-//            ->Attribute('limit', v::Optional(v::intType()->number()));
-
-        return v::optional(
-            v::attribute('offset', v::intType()->number())
-                ->attribute('limit', v::intType()->number())
-        );
-    }
-
-    public static function transformProperties(): array
-    {
-        return [
-            'offset' => Parse(...),
-            'limit' => Parse(...)
-        ];
-    }
 }

@@ -4,6 +4,7 @@ namespace Shared\App\Router;
 
 use Shared\App\Router\Annotations\Param;
 use Shared\App\Router\Enums\HttpStatus;
+use Shared\App\Router\Enums\HttpVerbs;
 use Shared\App\Router\Exceptions\HttpException;
 use Shared\App\Router\Traits\Route;
 
@@ -91,7 +92,7 @@ class Router
                     $queryParams = json_decode(json_encode($_GET, JSON_FORCE_OBJECT));
                     $body = json_decode(file_get_contents('php://input'));
 
-                    if (!is_object($body)) {
+                    if (!is_object($body) && in_array($method, [HttpVerbs::POST->value, HttpVerbs::PUT->value, HttpVerbs::PATCH->value]) ) {
                         throw new HttpException(HttpStatus::BAD_REQUEST, 'Invalid request body', 'INVALID_REQUEST_BODY');
                     }
 
